@@ -2,7 +2,7 @@ export const MESSAGES = {
     WELCOME: (name: string) => `Te damos la bienvenida\n${name}\n¡Disfruta jugar aSO!`,
     CSGO_STATUS_TITLE: "💻 Estado del servidor aSO",
     CSGO_STATUS_OFFLINE: "🔴 El servidor actualmente se encuentra **Apagado** o en mantenimiento.\n\nVuelve a intentar más tarde.",
-    CSGO_STATUS_ONLINE: (name: string, map: string, players: number, maxPlayers: number, joinLink: string) => `🟢 El servidor está en línea y funcionando.\n\n${name}\n**Mapa actual:** ${map}\n**Jugadores:** ${players} / ${maxPlayers}\n\n**Para unirte, pega esto en la consola:**\n\`connect ${joinLink.replace('steam://connect/', '')}\`\n\n**O usa este link directo:**\n<${joinLink}>`,
+    CSGO_STATUS_ONLINE: (name: string, map: string, players: number, maxPlayers: number, joinLink: string) => `🟢 El servidor está en línea y funcionando.\n\n**Mapa actual:** ${map}\n**Jugadores:** ${players} / ${maxPlayers}\n\n**Para unirte, pega esto en la consola:**\n\`connect ${joinLink.replace('steam://connect/', '')}\`\n\n**O usa este link directo:**\n<${joinLink}>`,
     BOOST: (name: string) => `¡Muchísimas gracias por\nboostear el servidor!\n${name}`,
     MUTE_MODAL_TITLE: "Mute User",
     MUTE_DURATION_LABEL: "Duración del muteo (ej. 10m, 1h, 1d)",
