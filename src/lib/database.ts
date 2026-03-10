@@ -28,6 +28,25 @@ export const initDb = async () => {
         )
     `);
 
+    await db.exec(`
+        CREATE TABLE IF NOT EXISTS Giveaways (
+            messageId TEXT PRIMARY KEY,
+            channelId TEXT NOT NULL,
+            prize TEXT NOT NULL,
+            winnersCount INTEGER NOT NULL,
+            endTime INTEGER NOT NULL,
+            status TEXT DEFAULT 'active'
+        )
+    `);
+
+    await db.exec(`
+        CREATE TABLE IF NOT EXISTS GiveawayParticipants (
+            messageId TEXT NOT NULL,
+            userId TEXT NOT NULL,
+            PRIMARY KEY (messageId, userId)
+        )
+    `);
+
     return db;
 };
 

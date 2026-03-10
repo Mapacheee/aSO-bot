@@ -90,5 +90,9 @@ export const COMMANDS = {
     SETUP_STATUS: {
         NAME: 'setup-status',
         DESCRIPTION: 'Configura el panel en vivo del estado del servidor de CS:GO en el canal actual'
+    },
+    SORTEO: {
+        NAME: 'sorteo',
+        DESCRIPTION: 'Inicia un nuevo sorteo en el servidor'
     }
 };

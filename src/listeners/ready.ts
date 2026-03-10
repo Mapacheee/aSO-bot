@@ -2,6 +2,7 @@ import { Listener } from '@sapphire/framework';
 import { Client, ActivityType } from 'discord.js';
 import { getDb } from '../lib/database';
 import { updateCSGOStatus } from '../lib/csgoStatus';
+import { initGiveawayTimers } from '../lib/giveawayManager';
 
 export class ReadyListener extends Listener {
     public constructor(context: Listener.LoaderContext, options: Listener.Options) {
@@ -23,7 +24,8 @@ export class ReadyListener extends Listener {
             setInterval(() => {
                 updateCSGOStatus(client);
             }, 60000);
-            
+
+            await initGiveawayTimers(client);
             updateCSGOStatus(client);
 
         } catch (error) {

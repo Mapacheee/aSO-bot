@@ -3,6 +3,9 @@ import { Interaction, ModalSubmitInteraction, ButtonInteraction, ChannelType, Pe
 import { MESSAGES } from '../constants/messages';
 import { parseDuration } from '../lib/utils';
 import { addTempChannelToDb } from '../lib/tempChannels';
+import { getDb } from '../lib/database';
+import { startGiveawayTimer } from '../lib/giveawayManager';
+import { EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle } from 'discord.js';
 
 export class InteractionCreateListener extends Listener {
     public constructor(context: Listener.LoaderContext, options: Listener.Options) {
@@ -40,6 +43,31 @@ export class InteractionCreateListener extends Listener {
                     }
                 ]
             });
+        } else if (interaction.customId === 'giveaway_participate') {
+            const db = await getDb();
+            try {
+                await db.run(
+                    'INSERT INTO GiveawayParticipants (messageId, userId) VALUES (?, ?)',
+                    [interaction.message.id, interaction.user.id]
+                );
+
+                const participants = await db.all("SELECT userId FROM GiveawayParticipants WHERE messageId = ?", [interaction.message.id]);
+                const giveaway = await db.get("SELECT endTime, winnersCount, prize FROM Giveaways WHERE messageId = ?", [interaction.message.id]);
+
+                if (giveaway) {
+                    const embed = EmbedBuilder.from(interaction.message.embeds[0])
+                        .setDescription(MESSAGES.GIVEAWAY_EMBED_DESC(giveaway.endTime, giveaway.winnersCount, participants.length));
+                    await interaction.message.edit({ embeds: [embed] });
+                }
+
+                await interaction.reply({ content: MESSAGES.GIVEAWAY_SUCCESS_PARTICIPATE, flags: MessageFlags.Ephemeral });
+            } catch (error: any) {
+                if (error.code === 'SQLITE_CONSTRAINT') {
+                    await interaction.reply({ content: MESSAGES.GIVEAWAY_ALREADY_PARTICIPATING, flags: MessageFlags.Ephemeral });
+                } else {
+                    await interaction.reply({ content: MESSAGES.ERROR_GENERIC, flags: MessageFlags.Ephemeral });
+                }
+            }
         }
     }
 
@@ -160,6 +188,52 @@ export class InteractionCreateListener extends Listener {
                 
                 await interaction.reply({ content: MESSAGES.SUCCESS_CHANNEL_CLEAR(toDeleteCount.toString()), flags: MessageFlags.Ephemeral });
             }
+        } else if (customId === 'giveaway_modal') {
+            const durationStr = interaction.fields.getTextInputValue('giveaway_duration');
+            const prize = interaction.fields.getTextInputValue('giveaway_prize');
+            const winnersCountStr = interaction.fields.getTextInputValue('giveaway_winners');
+
+            const duration = parseDuration(durationStr);
+            const winnersCount = parseInt(winnersCountStr);
+
+            if (!duration) {
+                await interaction.reply({ content: MESSAGES.GIVEAWAY_TIME_ERROR, flags: MessageFlags.Ephemeral });
+                return;
+            }
+
+            if (isNaN(winnersCount) || winnersCount < 1) {
+                await interaction.reply({ content: MESSAGES.GIVEAWAY_MIN_WINNERS_ERROR, flags: MessageFlags.Ephemeral });
+                return;
+            }
+
+            const endTime = Math.floor((Date.now() + duration) / 1000);
+
+            const embed = new EmbedBuilder()
+                .setTitle(MESSAGES.GIVEAWAY_EMBED_TITLE(prize))
+                .setDescription(MESSAGES.GIVEAWAY_EMBED_DESC(endTime, winnersCount, 0))
+                .setColor('#ffae00')
+                .setTimestamp();
+
+            const row = new ActionRowBuilder<ButtonBuilder>().addComponents(
+                new ButtonBuilder()
+                    .setCustomId('giveaway_participate')
+                    .setLabel(MESSAGES.GIVEAWAY_PARTICIPATE_BUTTON)
+                    .setStyle(ButtonStyle.Success)
+            );
+
+            const message = await interaction.reply({
+                embeds: [embed],
+                components: [row],
+                fetchReply: true
+            });
+
+            const db = await getDb();
+            await db.run(
+                'INSERT INTO Giveaways (messageId, channelId, prize, winnersCount, endTime) VALUES (?, ?, ?, ?, ?)',
+                [message.id, interaction.channelId, prize, winnersCount, endTime]
+            );
+
+            startGiveawayTimer(interaction.client, message.id, endTime);
         }
     }
 }

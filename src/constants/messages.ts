@@ -35,5 +35,20 @@ export const MESSAGES = {
     ERROR_USER_NOT_FOUND: "Usuario no encontrado.",
     ERROR_INVALID_TIME_FORMAT: "Formato de tiempo inválido. Usa formatos como 10m, 1h, 1d.",
     ERROR_INVALID_NUMBER: "Por favor, ingresa un número válido.",
-    ERROR_GENERIC: "Ocurrió un error al procesar tu solicitud."
+    ERROR_GENERIC: "Ocurrió un error al procesar tu solicitud.",
+    GIVEAWAY_MODAL_TITLE: "Crear Nuevo Sorteo",
+    GIVEAWAY_DURATION_LABEL: "Duración (ej. 10m, 1h, 1d)",
+    GIVEAWAY_PRIZE_LABEL: "Premio del sorteo",
+    GIVEAWAY_WINNERS_LABEL: "Cantidad de ganadores",
+    GIVEAWAY_EMBED_TITLE: (prize: string) => `🎁 Sorteo: ${prize}`,
+    GIVEAWAY_EMBED_DESC: (endTime: number, winners: number, participants: number) => `¡Haz clic en el botón de abajo para participar!\n\n**Termina:** <t:${endTime}:R>\n**Ganadores:** ${winners}\n**Participantes:** ${participants}`,
+    GIVEAWAY_PARTICIPATE_BUTTON: "Participar 🎉",
+    GIVEAWAY_SUCCESS_PARTICIPATE: "¡Has entrado al sorteo!",
+    GIVEAWAY_ALREADY_PARTICIPATING: "Ya estás participando en este sorteo.",
+    GIVEAWAY_ENDED_TITLE: (prize: string) => `🎁 Sorteo Finalizado: ${prize}`,
+    GIVEAWAY_ENDED_DESC: (winners: string) => `**Ganadores:** ${winners}\n\n¡Gracias a todos por participar!`,
+    GIVEAWAY_NO_PARTICIPANTS: "No hubo suficientes participantes para elegir un ganador.",
+    GIVEAWAY_WINNER_ANNOUNCE: (prize: string, winners: string) => `🎊 ¡Felicidades a los ganadores de **${prize}**: ${winners}!`,
+    GIVEAWAY_MIN_WINNERS_ERROR: "Debe haber al menos 1 ganador.",
+    GIVEAWAY_TIME_ERROR: "Duración inválida. Usa formatos como 1m, 1h, 1d."
 };
