@@ -55,9 +55,8 @@ export class InteractionCreateListener extends Listener {
                 const giveaway = await db.get("SELECT endTime, winnersCount, prize FROM Giveaways WHERE messageId = ?", [interaction.message.id]);
 
                 if (giveaway) {
-                    const embed = EmbedBuilder.from(interaction.message.embeds[0])
-                        .setDescription(MESSAGES.GIVEAWAY_EMBED_DESC(giveaway.endTime, giveaway.winnersCount, participants.length));
-                    await interaction.message.edit({ embeds: [embed] });
+                    const content = `${MESSAGES.GIVEAWAY_TITLE(giveaway.prize)}\n${MESSAGES.GIVEAWAY_DESC(giveaway.endTime, giveaway.winnersCount, participants.length)}`;
+                    await interaction.message.edit({ content });
                 }
 
                 await interaction.reply({ content: MESSAGES.GIVEAWAY_SUCCESS_PARTICIPATE, flags: MessageFlags.Ephemeral });
@@ -192,6 +191,7 @@ export class InteractionCreateListener extends Listener {
             const durationStr = interaction.fields.getTextInputValue('giveaway_duration');
             const prize = interaction.fields.getTextInputValue('giveaway_prize');
             const winnersCountStr = interaction.fields.getTextInputValue('giveaway_winners');
+            const acknowledgments = interaction.fields.getTextInputValue('giveaway_acknowledgments');
 
             const duration = parseDuration(durationStr);
             const winnersCount = parseInt(winnersCountStr);
@@ -208,11 +208,16 @@ export class InteractionCreateListener extends Listener {
 
             const endTime = Math.floor((Date.now() + duration) / 1000);
 
-            const embed = new EmbedBuilder()
-                .setTitle(MESSAGES.GIVEAWAY_EMBED_TITLE(prize))
-                .setDescription(MESSAGES.GIVEAWAY_EMBED_DESC(endTime, winnersCount, 0))
-                .setColor('#ffae00')
-                .setTimestamp();
+            const content = `${MESSAGES.GIVEAWAY_TITLE(prize)}\n${MESSAGES.GIVEAWAY_DESC(endTime, winnersCount, 0)}`;
+            
+            const embeds = [];
+            if (acknowledgments && acknowledgments.trim()) {
+                const thanksEmbed = new EmbedBuilder()
+                    .setTitle(MESSAGES.GIVEAWAY_ACKNOWLEDGMENTS_TITLE)
+                    .setDescription(acknowledgments)
+                    .setColor('#00ffcc');
+                embeds.push(thanksEmbed);
+            }
 
             const row = new ActionRowBuilder<ButtonBuilder>().addComponents(
                 new ButtonBuilder()
@@ -222,15 +227,16 @@ export class InteractionCreateListener extends Listener {
             );
 
             const message = await interaction.reply({
-                embeds: [embed],
+                content,
+                embeds: embeds.length > 0 ? embeds : undefined,
                 components: [row],
                 fetchReply: true
             });
 
             const db = await getDb();
             await db.run(
-                'INSERT INTO Giveaways (messageId, channelId, prize, winnersCount, endTime) VALUES (?, ?, ?, ?, ?)',
-                [message.id, interaction.channelId, prize, winnersCount, endTime]
+                'INSERT INTO Giveaways (messageId, channelId, prize, winnersCount, endTime, acknowledgments) VALUES (?, ?, ?, ?, ?, ?)',
+                [message.id, interaction.channelId, prize, winnersCount, endTime, acknowledgments || null]
             );
 
             startGiveawayTimer(interaction.client, message.id, endTime);

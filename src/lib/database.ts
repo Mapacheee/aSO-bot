@@ -35,9 +35,14 @@ export const initDb = async () => {
             prize TEXT NOT NULL,
             winnersCount INTEGER NOT NULL,
             endTime INTEGER NOT NULL,
-            status TEXT DEFAULT 'active'
+            status TEXT DEFAULT 'active',
+            acknowledgments TEXT
         )
     `);
+
+    try {
+        await db.exec('ALTER TABLE Giveaways ADD COLUMN acknowledgments TEXT');
+    } catch (e) {}
 
     await db.exec(`
         CREATE TABLE IF NOT EXISTS GiveawayParticipants (

@@ -15,8 +15,6 @@ export const startGiveawayTimer = (client: Client, messageId: string, endTime: n
 export const initGiveawayTimers = async (client: Client) => {
     try {
         const db = await getDb();
-        const now = Math.floor(Date.now() / 1000);
-
         const activeGiveaways = await db.all(
             "SELECT messageId, endTime FROM Giveaways WHERE status = 'active'"
         );
@@ -32,7 +30,10 @@ export const initGiveawayTimers = async (client: Client) => {
 export const endGiveaway = async (client: Client, messageId: string) => {
     try {
         const db = await getDb();
-        const giveaway = await db.get("SELECT * FROM Giveaways WHERE messageId = ?", [messageId]);
+        const giveaway = await db.get(
+            "SELECT messageId, channelId, prize, winnersCount, endTime, status FROM Giveaways WHERE messageId = ?", 
+            [messageId]
+        );
 
         if (!giveaway || giveaway.status !== 'active') return;
 
@@ -50,11 +51,9 @@ export const endGiveaway = async (client: Client, messageId: string) => {
 
         if (!participants || participants.length === 0) {
             if (message) {
-                const embed = EmbedBuilder.from(message.embeds[0])
-                    .setTitle(MESSAGES.GIVEAWAY_ENDED_TITLE(giveaway.prize))
-                    .setDescription(MESSAGES.GIVEAWAY_NO_PARTICIPANTS)
-                    .setColor('#ff0000');
-                await message.edit({ embeds: [embed], components: [] });
+                const title = MESSAGES.GIVEAWAY_ENDED_TITLE(giveaway.prize);
+                const body = MESSAGES.GIVEAWAY_ENDED_TEXT(giveaway.prize, MESSAGES.GIVEAWAY_NO_PARTICIPANTS);
+                await message.edit({ content: `${title}\n${body}`, components: [] });
             }
             await db.run("UPDATE Giveaways SET status = 'ended' WHERE messageId = ?", [messageId]);
             return;
@@ -73,12 +72,9 @@ export const endGiveaway = async (client: Client, messageId: string) => {
         const winnersText = winners.join(', ');
 
         if (message) {
-            const embed = EmbedBuilder.from(message.embeds[0])
-                .setTitle(MESSAGES.GIVEAWAY_ENDED_TITLE(giveaway.prize))
-                .setDescription(MESSAGES.GIVEAWAY_ENDED_DESC(winnersText))
-                .setColor('#00ff00');
-            await message.edit({ embeds: [embed], components: [] });
-            await channel.send(MESSAGES.GIVEAWAY_WINNER_ANNOUNCE(giveaway.prize, winnersText));
+            const title = MESSAGES.GIVEAWAY_ENDED_TITLE(giveaway.prize);
+            const body = MESSAGES.GIVEAWAY_ENDED_TEXT(giveaway.prize, winnersText);
+            await message.edit({ content: `${title}\n${body}`, components: [] });
         }
 
         await db.run("UPDATE Giveaways SET status = 'ended' WHERE messageId = ?", [messageId]);

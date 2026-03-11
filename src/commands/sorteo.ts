@@ -1,7 +1,7 @@
 import { COMMANDS } from '../constants/commands';
 import { MESSAGES } from '../constants/messages';
 import { Command } from '@sapphire/framework';
-import { ModalBuilder, TextInputBuilder, TextInputStyle, ActionRowBuilder, ModalActionRowComponentBuilder, PermissionFlagsBits } from 'discord.js';
+import { PermissionFlagsBits, TextInputStyle } from 'discord.js';
 
 export class SorteoCommand extends Command {
     public constructor(context: Command.LoaderContext, options: Command.Options) {
@@ -23,36 +23,62 @@ export class SorteoCommand extends Command {
     }
 
     public async chatInputRun(interaction: Command.ChatInputCommandInteraction) {
-        const modal = new ModalBuilder()
-            .setCustomId('giveaway_modal')
-            .setTitle(MESSAGES.GIVEAWAY_MODAL_TITLE);
-
-        const durationInput = new TextInputBuilder()
-            .setCustomId('giveaway_duration')
-            .setLabel(MESSAGES.GIVEAWAY_DURATION_LABEL)
-            .setStyle(TextInputStyle.Short)
-            .setPlaceholder('10m, 1h, 1d')
-            .setRequired(true);
-
-        const prizeInput = new TextInputBuilder()
-            .setCustomId('giveaway_prize')
-            .setLabel(MESSAGES.GIVEAWAY_PRIZE_LABEL)
-            .setStyle(TextInputStyle.Short)
-            .setRequired(true);
-
-        const winnersInput = new TextInputBuilder()
-            .setCustomId('giveaway_winners')
-            .setLabel(MESSAGES.GIVEAWAY_WINNERS_LABEL)
-            .setStyle(TextInputStyle.Short)
-            .setPlaceholder('1')
-            .setRequired(true);
-
-        modal.addComponents(
-            new ActionRowBuilder<ModalActionRowComponentBuilder>().addComponents(durationInput),
-            new ActionRowBuilder<ModalActionRowComponentBuilder>().addComponents(prizeInput),
-            new ActionRowBuilder<ModalActionRowComponentBuilder>().addComponents(winnersInput)
-        );
-
-        await interaction.showModal(modal);
+        await interaction.showModal({
+            title: MESSAGES.GIVEAWAY_MODAL_TITLE,
+            custom_id: 'giveaway_modal',
+            components: [
+                {
+                    type: 1,
+                    components: [
+                        {
+                            type: 4,
+                            custom_id: 'giveaway_duration',
+                            label: MESSAGES.GIVEAWAY_DURATION_LABEL,
+                            style: TextInputStyle.Short,
+                            placeholder: '1s, 10m, 1h, 1d',
+                            required: true
+                        }
+                    ]
+                },
+                {
+                    type: 1,
+                    components: [
+                        {
+                            type: 4,
+                            custom_id: 'giveaway_prize',
+                            label: MESSAGES.GIVEAWAY_PRIZE_LABEL,
+                            style: TextInputStyle.Short,
+                            required: true
+                        }
+                    ]
+                },
+                {
+                    type: 1,
+                    components: [
+                        {
+                            type: 4,
+                            custom_id: 'giveaway_winners',
+                            label: MESSAGES.GIVEAWAY_WINNERS_LABEL,
+                            style: TextInputStyle.Short,
+                            placeholder: '1',
+                            required: true
+                        }
+                    ]
+                },
+                {
+                    type: 1,
+                    components: [
+                        {
+                            type: 4,
+                            custom_id: 'giveaway_acknowledgments',
+                            label: MESSAGES.GIVEAWAY_ACKNOWLEDGMENTS_LABEL,
+                            style: TextInputStyle.Paragraph,
+                            placeholder: 'Ej: Gracias a <@ID> por la donación. (Usa menciones o IDs)',
+                            required: false
+                        }
+                    ]
+                }
+            ]
+        });
     }
 }
