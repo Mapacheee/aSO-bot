@@ -5,6 +5,7 @@ dotenv.config();
 
 const client = new SapphireClient({
     baseUserDirectory: __dirname,
+    defaultPrefix: '!',
     intents: [
         GatewayIntentBits.Guilds,
         GatewayIntentBits.GuildMessages,

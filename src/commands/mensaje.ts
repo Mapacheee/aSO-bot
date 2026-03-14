@@ -1,5 +1,5 @@
-import { Command } from '@sapphire/framework';
-import { MessageFlags } from 'discord.js';
+import { Command, Args } from '@sapphire/framework';
+import { Message, MessageFlags, PermissionsBitField } from 'discord.js';
 import { MESSAGES } from '../constants/messages';
 import { COMMANDS } from '../constants/commands';
 
@@ -34,5 +34,17 @@ export class MensajeCommand extends Command {
         }
 
         return interaction.reply({ content: MESSAGES.ERROR_GENERIC, flags: MessageFlags.Ephemeral });
+    }
+
+    public async messageRun(message: Message, args: Args) {
+        if (!message.member?.permissions.has(PermissionsBitField.Flags.ManageMessages)) return;
+
+        const text = await args.rest('string').catch(() => null);
+        if (!text) return;
+
+        if (message.channel.isTextBased()) {
+            await (message.channel as any).send({ content: text });
+            await message.delete().catch(() => null);
+        }
     }
 }

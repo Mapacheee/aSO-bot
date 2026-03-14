@@ -1,5 +1,5 @@
-import { Command } from '@sapphire/framework';
-import { MessageFlags } from 'discord.js';
+import { Command, Args } from '@sapphire/framework';
+import { Message, MessageFlags, PermissionsBitField } from 'discord.js';
 import { MESSAGES } from '../constants/messages';
 import { COMMANDS } from '../constants/commands';
 
@@ -40,5 +40,22 @@ export class MensajeImagenCommand extends Command {
         }
 
         return interaction.reply({ content: MESSAGES.ERROR_GENERIC, flags: MessageFlags.Ephemeral });
+    }
+
+    public async messageRun(message: Message, args: Args) {
+        if (!message.member?.permissions.has(PermissionsBitField.Flags.ManageMessages)) return;
+
+        const text = await args.rest('string').catch(() => null);
+        const attachment = message.attachments.first();
+        if (!text && !attachment) return;
+
+        if (message.channel.isTextBased()) {
+            const sendOptions: any = {};
+            if (text) sendOptions.content = text;
+            if (attachment) sendOptions.files = [attachment.url];
+
+            await (message.channel as any).send(sendOptions);
+            await message.delete().catch(() => null);
+        }
     }
 }

@@ -1,5 +1,5 @@
-import { Command } from '@sapphire/framework';
-import { MessageFlags, EmbedBuilder } from 'discord.js';
+import { Command, Args } from '@sapphire/framework';
+import { Message, MessageFlags, EmbedBuilder, PermissionsBitField } from 'discord.js';
 import { MESSAGES } from '../constants/messages';
 import { COMMANDS } from '../constants/commands';
 
@@ -38,5 +38,21 @@ export class MensajeEmbedCommand extends Command {
         }
 
         return interaction.reply({ content: MESSAGES.ERROR_GENERIC, flags: MessageFlags.Ephemeral });
+    }
+
+    public async messageRun(message: Message, args: Args) {
+        if (!message.member?.permissions.has(PermissionsBitField.Flags.ManageMessages)) return;
+
+        const text = await args.rest('string').catch(() => null);
+        if (!text) return;
+
+        if (message.channel.isTextBased()) {
+            const embed = new EmbedBuilder()
+                .setDescription(text)
+                .setColor('#2b2d31');
+
+            await (message.channel as any).send({ embeds: [embed] });
+            await message.delete().catch(() => null);
+        }
     }
 }
