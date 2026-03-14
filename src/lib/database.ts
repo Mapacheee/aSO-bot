@@ -52,6 +52,26 @@ export const initDb = async () => {
         )
     `);
 
+    await db.exec(`
+        CREATE TABLE IF NOT EXISTS Polls (
+            messageId TEXT PRIMARY KEY,
+            channelId TEXT NOT NULL,
+            question TEXT NOT NULL,
+            options TEXT NOT NULL,
+            creatorId TEXT NOT NULL,
+            status TEXT DEFAULT 'active'
+        )
+    `);
+
+    await db.exec(`
+        CREATE TABLE IF NOT EXISTS PollVotes (
+            messageId TEXT NOT NULL,
+            userId TEXT NOT NULL,
+            optionIndex INTEGER NOT NULL,
+            PRIMARY KEY (messageId, userId)
+        )
+    `);
+
     return db;
 };
 

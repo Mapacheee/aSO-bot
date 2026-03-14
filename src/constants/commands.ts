@@ -94,5 +94,9 @@ export const COMMANDS = {
     SORTEO: {
         NAME: 'sorteo',
         DESCRIPTION: 'Inicia un nuevo sorteo en el servidor'
+    },
+    VOTACION: {
+        NAME: 'votacion',
+        DESCRIPTION: 'Crea una nueva votación en el canal'
     }
 };

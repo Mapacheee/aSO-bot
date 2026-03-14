@@ -5,6 +5,7 @@ import { parseDuration } from '../lib/utils';
 import { addTempChannelToDb } from '../lib/tempChannels';
 import { getDb } from '../lib/database';
 import { startGiveawayTimer } from '../lib/giveawayManager';
+import { buildPollMessage, getVoteCounts } from '../lib/pollManager';
 import { EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle } from 'discord.js';
 
 export class InteractionCreateListener extends Listener {
@@ -67,6 +68,69 @@ export class InteractionCreateListener extends Listener {
                     await interaction.reply({ content: MESSAGES.ERROR_GENERIC, flags: MessageFlags.Ephemeral });
                 }
             }
+        } else if (interaction.customId.startsWith('poll_vote_')) {
+            const optionIndex = parseInt(interaction.customId.replace('poll_vote_', ''));
+            const db = await getDb();
+
+            const poll = await db.get("SELECT * FROM Polls WHERE messageId = ?", [interaction.message.id]);
+            if (!poll || poll.status !== 'active') {
+                await interaction.reply({ content: MESSAGES.POLL_CLOSED, flags: MessageFlags.Ephemeral });
+                return;
+            }
+
+            try {
+                await db.run(
+                    'INSERT INTO PollVotes (messageId, userId, optionIndex) VALUES (?, ?, ?)',
+                    [interaction.message.id, interaction.user.id, optionIndex]
+                );
+
+                const options: string[] = JSON.parse(poll.options);
+                const votes = await getVoteCounts(interaction.message.id, options.length);
+                const content = buildPollMessage(poll.question, options, votes);
+                await interaction.message.edit({ content });
+                await interaction.reply({ content: MESSAGES.POLL_SUCCESS_VOTE, flags: MessageFlags.Ephemeral });
+            } catch (error: any) {
+                if (error.code === 'SQLITE_CONSTRAINT') {
+                    await interaction.reply({ content: MESSAGES.POLL_ALREADY_VOTED, flags: MessageFlags.Ephemeral });
+                } else {
+                    await interaction.reply({ content: MESSAGES.ERROR_GENERIC, flags: MessageFlags.Ephemeral });
+                }
+            }
+        } else if (interaction.customId === 'poll_close') {
+            const db = await getDb();
+            const poll = await db.get("SELECT * FROM Polls WHERE messageId = ?", [interaction.message.id]);
+
+            if (!poll) return;
+
+            if (poll.creatorId !== interaction.user.id) {
+                await interaction.reply({ content: MESSAGES.POLL_NOT_CREATOR, flags: MessageFlags.Ephemeral });
+                return;
+            }
+
+            if (poll.status !== 'active') {
+                await interaction.reply({ content: MESSAGES.POLL_CLOSED, flags: MessageFlags.Ephemeral });
+                return;
+            }
+
+            await db.run("UPDATE Polls SET status = 'closed' WHERE messageId = ?", [interaction.message.id]);
+
+            const options: string[] = JSON.parse(poll.options);
+            const votes = await getVoteCounts(interaction.message.id, options.length);
+            const content = buildPollMessage(poll.question, options, votes, true);
+
+            const disabledRows: ActionRowBuilder<ButtonBuilder>[] = [];
+            for (const row of interaction.message.components) {
+                const newRow = new ActionRowBuilder<ButtonBuilder>();
+                for (const component of (row as any).components) {
+                    newRow.addComponents(
+                        ButtonBuilder.from(component as any).setDisabled(true)
+                    );
+                }
+                disabledRows.push(newRow);
+            }
+
+            await interaction.message.edit({ content, components: disabledRows });
+            await interaction.reply({ content: '✅ Votación cerrada.', flags: MessageFlags.Ephemeral });
         }
     }
 
@@ -240,6 +304,61 @@ export class InteractionCreateListener extends Listener {
             );
 
             startGiveawayTimer(interaction.client, message.id, endTime);
+        } else if (customId === 'poll_modal') {
+            const question = interaction.fields.getTextInputValue('poll_question');
+            const optionsRaw = interaction.fields.getTextInputValue('poll_options');
+            const options = optionsRaw.split('\n').map(o => o.trim()).filter(o => o.length > 0);
+
+            if (options.length < 2) {
+                await interaction.reply({ content: MESSAGES.POLL_MIN_OPTIONS_ERROR, flags: MessageFlags.Ephemeral });
+                return;
+            }
+
+            if (options.length > 10) {
+                await interaction.reply({ content: MESSAGES.POLL_MAX_OPTIONS_ERROR, flags: MessageFlags.Ephemeral });
+                return;
+            }
+
+            const NUMBER_EMOJIS = ['1️⃣', '2️⃣', '3️⃣', '4️⃣', '5️⃣', '6️⃣', '7️⃣', '8️⃣', '9️⃣', '🔟'];
+            const votes = new Array(options.length).fill(0);
+            const content = buildPollMessage(question, options, votes);
+
+            const rows: ActionRowBuilder<ButtonBuilder>[] = [];
+            let currentRow = new ActionRowBuilder<ButtonBuilder>();
+
+            for (let i = 0; i < options.length; i++) {
+                if (i > 0 && i % 5 === 0) {
+                    rows.push(currentRow);
+                    currentRow = new ActionRowBuilder<ButtonBuilder>();
+                }
+                currentRow.addComponents(
+                    new ButtonBuilder()
+                        .setCustomId(`poll_vote_${i}`)
+                        .setLabel(NUMBER_EMOJIS[i])
+                        .setStyle(ButtonStyle.Primary)
+                );
+            }
+            rows.push(currentRow);
+
+            const closeRow = new ActionRowBuilder<ButtonBuilder>().addComponents(
+                new ButtonBuilder()
+                    .setCustomId('poll_close')
+                    .setLabel(MESSAGES.POLL_CLOSE_BUTTON)
+                    .setStyle(ButtonStyle.Danger)
+            );
+            rows.push(closeRow);
+
+            const message = await interaction.reply({
+                content,
+                components: rows,
+                fetchReply: true
+            });
+
+            const db = await getDb();
+            await db.run(
+                'INSERT INTO Polls (messageId, channelId, question, options, creatorId) VALUES (?, ?, ?, ?, ?)',
+                [message.id, interaction.channelId, question, JSON.stringify(options), interaction.user.id]
+            );
         }
     }
 }

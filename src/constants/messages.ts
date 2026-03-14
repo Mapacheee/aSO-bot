@@ -51,5 +51,18 @@ export const MESSAGES = {
     GIVEAWAY_ENDED_TEXT: (prize: string, winners: string) => `**Premio:** ${prize}\n**Ganadores:** ${winners}\n\n¡Gracias a todos por participar!`,
     GIVEAWAY_NO_PARTICIPANTS: "No hubo suficientes participantes para elegir un ganador.",
     GIVEAWAY_MIN_WINNERS_ERROR: "Debe haber al menos 1 ganador.",
-    GIVEAWAY_TIME_ERROR: "Duración inválida. Usa formatos como 1s, 10m, 1h, 1d."
+    GIVEAWAY_TIME_ERROR: "Duración inválida. Usa formatos como 1s, 10m, 1h, 1d.",
+    POLL_MODAL_TITLE: "Crear Nueva Votación",
+    POLL_QUESTION_LABEL: "Pregunta de la votación",
+    POLL_OPTIONS_LABEL: "Opciones (una por línea, máx 10)",
+    POLL_TITLE: (question: string) => `## 📊 **Votación: ${question}**`,
+    POLL_TOTAL_VOTES: (total: number) => `\n**Total de votos:** ${total}`,
+    POLL_SUCCESS_VOTE: "¡Tu voto ha sido registrado!",
+    POLL_ALREADY_VOTED: "Ya has votado en esta votación.",
+    POLL_CLOSED: "Esta votación ya está cerrada.",
+    POLL_CLOSED_TITLE: (question: string) => `## 🔒 **Votación Cerrada: ${question}**`,
+    POLL_NOT_CREATOR: "Solo el creador de la votación puede cerrarla.",
+    POLL_MIN_OPTIONS_ERROR: "Debes incluir al menos 2 opciones (una por línea).",
+    POLL_MAX_OPTIONS_ERROR: "Máximo 10 opciones permitidas.",
+    POLL_CLOSE_BUTTON: "Cerrar Votación 🔒"
 };
