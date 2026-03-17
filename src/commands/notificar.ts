@@ -9,12 +9,23 @@ export class NotificarCommand extends Command {
     }
 
     public async messageRun(message: Message, args: Args) {
-        const mapName = await args.rest('string').catch(() => null);
+        const allowedChannel = process.env.MAP_NOTIFY_CHANNEL_ID;
+        if (allowedChannel && message.channelId !== allowedChannel) {
+            const reply = await message.reply({ content: MESSAGES.MAP_WRONG_CHANNEL(allowedChannel) });
+            setTimeout(() => reply.delete().catch(() => null), 5000);
+            return;
+        }
+
+        const mapName = await args.pick('string').catch(() => null);
+        const extra = await args.rest('string').catch(() => null);
 
         if (!mapName) {
-            const reply = await message.reply({ content: MESSAGES.MAP_NO_MAP_PROVIDED });
-            setTimeout(() => reply.delete().catch(() => null), 5000);
-            await message.delete().catch(() => null);
+            await message.reply({ content: MESSAGES.MAP_NO_MAP_PROVIDED });
+            return;
+        }
+
+        if (extra || mapName.includes('<@') || mapName.includes('<#')) {
+            await message.reply({ content: MESSAGES.MAP_INVALID_NAME });
             return;
         }
 
@@ -27,15 +38,11 @@ export class NotificarCommand extends Command {
                 [message.author.id, map, message.channelId]
             );
 
-            const reply = await message.reply({ content: MESSAGES.MAP_SUBSCRIBED(map) });
-            setTimeout(() => reply.delete().catch(() => null), 5000);
+            await message.reply({ content: MESSAGES.MAP_SUBSCRIBED(map) });
         } catch (error: any) {
             if (error.code === 'SQLITE_CONSTRAINT') {
-                const reply = await message.reply({ content: MESSAGES.MAP_ALREADY_SUBSCRIBED(map) });
-                setTimeout(() => reply.delete().catch(() => null), 5000);
+                await message.reply({ content: MESSAGES.MAP_ALREADY_SUBSCRIBED(map) });
             }
         }
-
-        await message.delete().catch(() => null);
     }
 }

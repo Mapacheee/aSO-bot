@@ -65,11 +65,13 @@ export const MESSAGES = {
     POLL_MIN_OPTIONS_ERROR: "Debes incluir al menos 2 opciones (una por línea).",
     POLL_MAX_OPTIONS_ERROR: "Máximo 10 opciones permitidas.",
     POLL_CLOSE_BUTTON: "Cerrar Votación 🔒",
-    MAP_SUBSCRIBED: (map: string) => `🗺️ ¡Te notificaré cuando el mapa **${map}** esté activo en el servidor!`,
-    MAP_ALREADY_SUBSCRIBED: (map: string) => `Ya estás suscrito a **${map}**.`,
-    MAP_UNSUBSCRIBED: (map: string) => `❌ Has cancelado la notificación para **${map}**.`,
-    MAP_NOT_SUBSCRIBED: (map: string) => `No tienes una suscripción activa para **${map}**.`,
-    MAP_NOTIFY: (map: string) => `🗺️ ¡El mapa **${map}** está activo en el servidor! ¡Entra a jugar!`,
-    MAP_NO_MAP_PROVIDED: "Debes indicar un nombre de mapa. Ejemplo: `!notificar ze_mako`",
-    MAP_NO_MAP_CANCEL: "Debes indicar qué mapa cancelar. Ejemplo: `!cancelar ze_mako`"
+    MAP_SUBSCRIBED: (map: string) => `🗺️ Te voy a notificar cuando se juegue un mapa que contenga el nombre "**${map}**".\n\nEscribí \`!cancelar ${map}\` si querés desactivar el seguimiento.\n\nPodés recibir múltiples notificaciones de mapas, por ejemplo: \`!notificar ffvii\`, y te notificaré cuando se jueguen todos los mapas que contengan esas palabras.`,
+    MAP_ALREADY_SUBSCRIBED: (map: string) => `Ya estás suscrito a notificaciones de mapas que contengan "**${map}**".`,
+    MAP_UNSUBSCRIBED: (map: string) => `❌ Has cancelado las notificaciones para mapas que contengan "**${map}**".`,
+    MAP_NOT_SUBSCRIBED: (map: string) => `No tenés una suscripción activa para "**${map}**".`,
+    MAP_NOTIFY: (map: string) => `🗺️ ¡El mapa **${map}** está activo en el servidor! ¡Entrá a jugar!`,
+    MAP_NO_MAP_PROVIDED: "Debés indicar un nombre de mapa. Ejemplo: `!notificar ze_tyranny`",
+    MAP_NO_MAP_CANCEL: "Debés indicar qué mapa cancelar. Ejemplo: `!cancelar ze_tyranny`",
+    MAP_WRONG_CHANNEL: (channelId: string) => `Este comando solo se puede usar en <#${channelId}>.`,
+    MAP_INVALID_NAME: "El nombre del mapa no puede contener espacios ni menciones. Ejemplo: `!notificar ze_tyranny`"
 };
