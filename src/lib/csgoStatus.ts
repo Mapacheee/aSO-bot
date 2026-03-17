@@ -5,6 +5,8 @@ import { MESSAGES } from '../constants/messages';
 import { IMAGES } from '../constants/images';
 import path from 'path';
 
+let lastMap: string | null = null;
+
 export const updateCSGOStatus = async (client: Client) => {
     try {
         const db = await getDb();
@@ -53,9 +55,17 @@ export const updateCSGOStatus = async (client: Client) => {
             embed.setColor('#00ff00')
                  .setDescription(MESSAGES.CSGO_STATUS_ONLINE(state.name, state.map, playerCount, state.maxplayers, connectLink));
 
+            const currentMap = state.map?.toLowerCase();
+            if (currentMap && lastMap !== null && currentMap !== lastMap) {
+                console.log(`[CSGO] Map changed: ${lastMap} -> ${currentMap}`);
+                await notifyMapSubscribers(client, currentMap);
+            }
+            lastMap = currentMap || null;
+
         } catch (error) {
             embed.setColor('#ff0000')
                  .setDescription(MESSAGES.CSGO_STATUS_OFFLINE);
+            lastMap = null;
         }
 
         const logoPath = path.join(process.cwd(), 'assets', IMAGES.STATUS_LOGO);
@@ -67,5 +77,48 @@ export const updateCSGOStatus = async (client: Client) => {
 
     } catch (error) {
         console.error(`Status Poller Error:`, error);
+    }
+};
+
+const notifyMapSubscribers = async (client: Client, currentMap: string) => {
+    try {
+        const db = await getDb();
+        const subscribers = await db.all(
+            "SELECT userId, mapName, channelId FROM MapSubscriptions WHERE ? LIKE '%' || mapName || '%'",
+            [currentMap]
+        );
+
+        if (subscribers.length === 0) return;
+
+        console.log(`[CSGO] Notifying ${subscribers.length} subscriber(s) for map: ${currentMap}`);
+
+        const channelGroups: Map<string, { userId: string, mapName: string }[]> = new Map();
+
+        for (const sub of subscribers) {
+            const group = channelGroups.get(sub.channelId) || [];
+            group.push({ userId: sub.userId, mapName: sub.mapName });
+            channelGroups.set(sub.channelId, group);
+        }
+
+        for (const [chId, subs] of channelGroups) {
+            const channel = await client.channels.fetch(chId).catch(() => null);
+            if (channel && channel.isTextBased()) {
+                const mentions = subs.map(s => `<@${s.userId}>`).join(' ');
+                await (channel as any).send({ content: `${mentions} ${MESSAGES.MAP_NOTIFY(currentMap)}` });
+            }
+        }
+
+        for (const sub of subscribers) {
+            try {
+                const user = await client.users.fetch(sub.userId).catch(() => null);
+                if (user) {
+                    await user.send({ content: MESSAGES.MAP_NOTIFY(currentMap) });
+                }
+            } catch (err) {
+                console.error(`[CSGO] Failed to DM user ${sub.userId}:`, err);
+            }
+        }
+    } catch (error) {
+        console.error('[CSGO] Map notification error:', error);
     }
 };

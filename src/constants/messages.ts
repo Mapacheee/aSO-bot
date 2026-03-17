@@ -64,5 +64,12 @@ export const MESSAGES = {
     POLL_NOT_CREATOR: "Solo el creador de la votación puede cerrarla.",
     POLL_MIN_OPTIONS_ERROR: "Debes incluir al menos 2 opciones (una por línea).",
     POLL_MAX_OPTIONS_ERROR: "Máximo 10 opciones permitidas.",
-    POLL_CLOSE_BUTTON: "Cerrar Votación 🔒"
+    POLL_CLOSE_BUTTON: "Cerrar Votación 🔒",
+    MAP_SUBSCRIBED: (map: string) => `🗺️ ¡Te notificaré cuando el mapa **${map}** esté activo en el servidor!`,
+    MAP_ALREADY_SUBSCRIBED: (map: string) => `Ya estás suscrito a **${map}**.`,
+    MAP_UNSUBSCRIBED: (map: string) => `❌ Has cancelado la notificación para **${map}**.`,
+    MAP_NOT_SUBSCRIBED: (map: string) => `No tienes una suscripción activa para **${map}**.`,
+    MAP_NOTIFY: (map: string) => `🗺️ ¡El mapa **${map}** está activo en el servidor! ¡Entra a jugar!`,
+    MAP_NO_MAP_PROVIDED: "Debes indicar un nombre de mapa. Ejemplo: `!notificar ze_mako`",
+    MAP_NO_MAP_CANCEL: "Debes indicar qué mapa cancelar. Ejemplo: `!cancelar ze_mako`"
 };

@@ -72,6 +72,15 @@ export const initDb = async () => {
         )
     `);
 
+    await db.exec(`
+        CREATE TABLE IF NOT EXISTS MapSubscriptions (
+            userId TEXT NOT NULL,
+            mapName TEXT NOT NULL,
+            channelId TEXT NOT NULL,
+            PRIMARY KEY (userId, mapName)
+        )
+    `);
+
     return db;
 };
 
