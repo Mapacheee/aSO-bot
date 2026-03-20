@@ -81,6 +81,34 @@ export const initDb = async () => {
         )
     `);
 
+    await db.exec(`
+        CREATE TABLE IF NOT EXISTS NominationSessions (
+            messageId TEXT PRIMARY KEY,
+            channelId TEXT NOT NULL,
+            title TEXT NOT NULL,
+            creatorId TEXT NOT NULL,
+            status TEXT DEFAULT 'active'
+        )
+    `);
+
+    await db.exec(`
+        CREATE TABLE IF NOT EXISTS NominationMaps (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            messageId TEXT NOT NULL,
+            mapName TEXT NOT NULL,
+            nominatorId TEXT NOT NULL
+        )
+    `);
+
+    await db.exec(`
+        CREATE TABLE IF NOT EXISTS NominationVotes (
+            messageId TEXT NOT NULL,
+            userId TEXT NOT NULL,
+            mapName TEXT NOT NULL,
+            PRIMARY KEY (messageId, userId)
+        )
+    `);
+
     return db;
 };
 

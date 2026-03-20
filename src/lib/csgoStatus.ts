@@ -58,7 +58,7 @@ export const updateCSGOStatus = async (client: Client) => {
             const currentMap = state.map?.toLowerCase();
             if (currentMap && lastMap !== null && currentMap !== lastMap) {
                 console.log(`[CSGO] Map changed: ${lastMap} -> ${currentMap}`);
-                await notifyMapSubscribers(client, currentMap);
+                await notifyMapSubscribers(client, currentMap, playerCount, state.maxplayers, `${ip}:${port}`);
             }
             lastMap = currentMap || null;
 
@@ -80,7 +80,7 @@ export const updateCSGOStatus = async (client: Client) => {
     }
 };
 
-const notifyMapSubscribers = async (client: Client, currentMap: string) => {
+const notifyMapSubscribers = async (client: Client, currentMap: string, players: number, maxPlayers: number, connectIp: string) => {
     try {
         const db = await getDb();
         const subscribers = await db.all(
@@ -104,7 +104,7 @@ const notifyMapSubscribers = async (client: Client, currentMap: string) => {
             const channel = await client.channels.fetch(chId).catch(() => null);
             if (channel && channel.isTextBased()) {
                 const mentions = subs.map(s => `<@${s.userId}>`).join(' ');
-                await (channel as any).send({ content: `${mentions} ${MESSAGES.MAP_NOTIFY(currentMap)}` });
+                await (channel as any).send({ content: `${mentions} ${MESSAGES.MAP_NOTIFY(currentMap, players, maxPlayers, connectIp)}` });
             }
         }
 
@@ -112,7 +112,7 @@ const notifyMapSubscribers = async (client: Client, currentMap: string) => {
             try {
                 const user = await client.users.fetch(sub.userId).catch(() => null);
                 if (user) {
-                    await user.send({ content: MESSAGES.MAP_NOTIFY(currentMap) });
+                    await user.send({ content: MESSAGES.MAP_NOTIFY(currentMap, players, maxPlayers, connectIp) });
                 }
             } catch (err) {
                 console.error(`[CSGO] Failed to DM user ${sub.userId}:`, err);

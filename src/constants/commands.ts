@@ -98,5 +98,9 @@ export const COMMANDS = {
     VOTACION: {
         NAME: 'votacion',
         DESCRIPTION: 'Crea una nueva votación en el canal'
+    },
+    NOMINAR: {
+        NAME: 'nominar',
+        DESCRIPTION: 'Crea una sesión de nominación de mapas para un evento'
     }
 };

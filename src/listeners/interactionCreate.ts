@@ -1,11 +1,12 @@
 import { Listener } from '@sapphire/framework';
-import { Interaction, ModalSubmitInteraction, ButtonInteraction, ChannelType, PermissionsBitField, GuildMember, MessageFlags } from 'discord.js';
+import { Interaction, ModalSubmitInteraction, ButtonInteraction, ChannelType, PermissionsBitField, GuildMember, MessageFlags, StringSelectMenuInteraction, TextInputStyle } from 'discord.js';
 import { MESSAGES } from '../constants/messages';
 import { parseDuration } from '../lib/utils';
 import { addTempChannelToDb } from '../lib/tempChannels';
 import { getDb } from '../lib/database';
 import { startGiveawayTimer } from '../lib/giveawayManager';
 import { buildPollMessage, getVoteCounts } from '../lib/pollManager';
+import { getNominationData, buildNominationMessage, buildNominationComponents, refreshNominationMessage } from '../lib/nominationManager';
 import { EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle } from 'discord.js';
 
 export class InteractionCreateListener extends Listener {
@@ -21,6 +22,8 @@ export class InteractionCreateListener extends Listener {
             await this.handleButton(interaction);
         } else if (interaction.isModalSubmit()) {
             await this.handleModal(interaction);
+        } else if (interaction.isStringSelectMenu()) {
+            await this.handleSelectMenu(interaction);
         }
     }
 
@@ -131,6 +134,120 @@ export class InteractionCreateListener extends Listener {
 
             await interaction.message.edit({ content, components: disabledRows });
             await interaction.reply({ content: '✅ Votación cerrada.', flags: MessageFlags.Ephemeral });
+        } else if (interaction.customId === 'nom_add') {
+            const db = await getDb();
+            const session = await db.get("SELECT * FROM NominationSessions WHERE messageId = ?", [interaction.message.id]);
+            if (!session || session.status !== 'active') {
+                await interaction.reply({ content: MESSAGES.NOM_CLOSED, flags: MessageFlags.Ephemeral });
+                return;
+            }
+
+            await interaction.showModal({
+                title: MESSAGES.NOM_MAP_MODAL_TITLE,
+                custom_id: `nom_map_modal_${interaction.message.id}`,
+                components: [
+                    {
+                        type: 1,
+                        components: [
+                            {
+                                type: 4,
+                                custom_id: 'nom_map_name',
+                                label: MESSAGES.NOM_MAP_LABEL,
+                                style: 1 as any,
+                                placeholder: 'ze_mako_v9',
+                                required: true
+                            }
+                        ]
+                    }
+                ]
+            });
+        }
+    }
+
+    private async handleSelectMenu(interaction: StringSelectMenuInteraction) {
+        if (interaction.customId === 'nom_vote') {
+            const db = await getDb();
+            const session = await db.get("SELECT * FROM NominationSessions WHERE messageId = ?", [interaction.message.id]);
+            if (!session || session.status !== 'active') {
+                await interaction.reply({ content: MESSAGES.NOM_CLOSED, flags: MessageFlags.Ephemeral });
+                return;
+            }
+
+            const mapName = interaction.values[0];
+            const existing = await db.get(
+                "SELECT mapName FROM NominationVotes WHERE messageId = ? AND userId = ?",
+                [interaction.message.id, interaction.user.id]
+            );
+
+            if (existing) {
+                await db.run(
+                    "UPDATE NominationVotes SET mapName = ? WHERE messageId = ? AND userId = ?",
+                    [mapName, interaction.message.id, interaction.user.id]
+                );
+            } else {
+                await db.run(
+                    'INSERT INTO NominationVotes (messageId, userId, mapName) VALUES (?, ?, ?)',
+                    [interaction.message.id, interaction.user.id, mapName]
+                );
+            }
+
+            await refreshNominationMessage(interaction.message, session);
+            const msg = existing ? MESSAGES.NOM_ALREADY_VOTED : MESSAGES.NOM_SUCCESS_VOTE(mapName);
+            await interaction.reply({ content: msg, flags: MessageFlags.Ephemeral });
+        } else if (interaction.customId === 'nom_admin') {
+            const member = interaction.member as GuildMember;
+            if (!member.permissions.has(PermissionsBitField.Flags.ManageMessages)) {
+                await interaction.reply({ content: MESSAGES.NOM_NOT_ADMIN, flags: MessageFlags.Ephemeral });
+                return;
+            }
+
+            const db = await getDb();
+            const session = await db.get("SELECT * FROM NominationSessions WHERE messageId = ?", [interaction.message.id]);
+            if (!session) return;
+
+            const action = interaction.values[0];
+
+            if (action === 'reset_votes') {
+                await db.run("DELETE FROM NominationVotes WHERE messageId = ?", [interaction.message.id]);
+                await refreshNominationMessage(interaction.message, session);
+                await interaction.reply({ content: MESSAGES.NOM_RESET_VOTES, flags: MessageFlags.Ephemeral });
+            } else if (action === 'delete_map') {
+                await interaction.showModal({
+                    title: MESSAGES.NOM_DELETE_MODAL_TITLE,
+                    custom_id: `nom_delete_modal_${interaction.message.id}`,
+                    components: [
+                        {
+                            type: 1,
+                            components: [
+                                {
+                                    type: 4,
+                                    custom_id: 'nom_delete_name',
+                                    label: MESSAGES.NOM_DELETE_LABEL,
+                                    style: 1 as any,
+                                    required: true
+                                }
+                            ]
+                        }
+                    ]
+                });
+            } else if (action === 'close') {
+                await db.run("UPDATE NominationSessions SET status = 'closed' WHERE messageId = ?", [interaction.message.id]);
+                session.status = 'closed';
+                await refreshNominationMessage(interaction.message, session);
+                await interaction.reply({ content: MESSAGES.NOM_SESSION_CLOSED, flags: MessageFlags.Ephemeral });
+            } else if (action === 'reopen') {
+                await db.run("UPDATE NominationSessions SET status = 'active' WHERE messageId = ?", [interaction.message.id]);
+                session.status = 'active';
+                await refreshNominationMessage(interaction.message, session);
+                await interaction.reply({ content: MESSAGES.NOM_SESSION_REOPENED, flags: MessageFlags.Ephemeral });
+            } else if (action === 'full_reset') {
+                await db.run("DELETE FROM NominationMaps WHERE messageId = ?", [interaction.message.id]);
+                await db.run("DELETE FROM NominationVotes WHERE messageId = ?", [interaction.message.id]);
+                await db.run("UPDATE NominationSessions SET status = 'active' WHERE messageId = ?", [interaction.message.id]);
+                session.status = 'active';
+                await refreshNominationMessage(interaction.message, session);
+                await interaction.reply({ content: MESSAGES.NOM_FULL_RESET, flags: MessageFlags.Ephemeral });
+            }
         }
     }
 
@@ -359,6 +476,90 @@ export class InteractionCreateListener extends Listener {
                 'INSERT INTO Polls (messageId, channelId, question, options, creatorId) VALUES (?, ?, ?, ?, ?)',
                 [message.id, interaction.channelId, question, JSON.stringify(options), interaction.user.id]
             );
+        } else if (customId === 'nom_setup_modal') {
+            const title = interaction.fields.getTextInputValue('nom_title');
+
+            const { maps, total } = { maps: [], total: 0 };
+            const content = buildNominationMessage(title, maps, total);
+            const components = buildNominationComponents(maps);
+
+            const message = await interaction.reply({
+                content,
+                components,
+                fetchReply: true
+            });
+
+            const db = await getDb();
+            await db.run(
+                'INSERT INTO NominationSessions (messageId, channelId, title, creatorId) VALUES (?, ?, ?, ?)',
+                [message.id, interaction.channelId, title, interaction.user.id]
+            );
+        } else if (customId.startsWith('nom_map_modal_')) {
+            const messageId = customId.replace('nom_map_modal_', '');
+            const db = await getDb();
+            const session = await db.get("SELECT * FROM NominationSessions WHERE messageId = ?", [messageId]);
+            if (!session || session.status !== 'active') {
+                await interaction.reply({ content: MESSAGES.NOM_CLOSED, flags: MessageFlags.Ephemeral });
+                return;
+            }
+
+            const mapName = interaction.fields.getTextInputValue('nom_map_name').trim();
+
+            const existing = await db.get(
+                "SELECT id FROM NominationMaps WHERE messageId = ? AND LOWER(mapName) = LOWER(?)",
+                [messageId, mapName]
+            );
+
+            if (existing) {
+                await interaction.reply({ content: MESSAGES.NOM_ALREADY_EXISTS(mapName), flags: MessageFlags.Ephemeral });
+                return;
+            }
+
+            await db.run(
+                'INSERT INTO NominationMaps (messageId, mapName, nominatorId) VALUES (?, ?, ?)',
+                [messageId, mapName, interaction.user.id]
+            );
+
+            const channel = await interaction.client.channels.fetch(session.channelId).catch(() => null);
+            if (channel && channel.isTextBased()) {
+                const msg = await (channel as any).messages.fetch(messageId).catch(() => null);
+                if (msg) {
+                    await refreshNominationMessage(msg, session);
+                }
+            }
+
+            await interaction.reply({ content: MESSAGES.NOM_SUCCESS_ADD(mapName), flags: MessageFlags.Ephemeral });
+        } else if (customId.startsWith('nom_delete_modal_')) {
+            const messageId = customId.replace('nom_delete_modal_', '');
+            const db = await getDb();
+            const session = await db.get("SELECT * FROM NominationSessions WHERE messageId = ?", [messageId]);
+            if (!session) return;
+
+            const mapName = interaction.fields.getTextInputValue('nom_delete_name').trim();
+
+            const result = await db.run(
+                "DELETE FROM NominationMaps WHERE messageId = ? AND LOWER(mapName) = LOWER(?)",
+                [messageId, mapName]
+            );
+
+            if (result.changes && result.changes > 0) {
+                await db.run(
+                    "DELETE FROM NominationVotes WHERE messageId = ? AND LOWER(mapName) = LOWER(?)",
+                    [messageId, mapName]
+                );
+
+                const channel = await interaction.client.channels.fetch(session.channelId).catch(() => null);
+                if (channel && channel.isTextBased()) {
+                    const msg = await (channel as any).messages.fetch(messageId).catch(() => null);
+                    if (msg) {
+                        await refreshNominationMessage(msg, session);
+                    }
+                }
+
+                await interaction.reply({ content: MESSAGES.NOM_DELETED_MAP(mapName), flags: MessageFlags.Ephemeral });
+            } else {
+                await interaction.reply({ content: MESSAGES.NOM_MAP_NOT_FOUND(mapName), flags: MessageFlags.Ephemeral });
+            }
         }
     }
 }
