@@ -142,6 +142,14 @@ export class InteractionCreateListener extends Listener {
                 return;
             }
 
+            if (session.adminsOnly === 1) {
+                const member = interaction.member as GuildMember;
+                if (!member.permissions.has(PermissionsBitField.Flags.ManageMessages)) {
+                    await interaction.reply({ content: MESSAGES.NOM_ADMINS_ONLY_ERROR, flags: MessageFlags.Ephemeral });
+                    return;
+                }
+            }
+
             await interaction.showModal({
                 title: MESSAGES.NOM_MAP_MODAL_TITLE,
                 custom_id: `nom_map_modal_${interaction.message.id}`,
@@ -211,6 +219,12 @@ export class InteractionCreateListener extends Listener {
                 await db.run("DELETE FROM NominationVotes WHERE messageId = ?", [interaction.message.id]);
                 await refreshNominationMessage(interaction.message, session);
                 await interaction.reply({ content: MESSAGES.NOM_RESET_VOTES, flags: MessageFlags.Ephemeral });
+            } else if (action === 'toggle_admins_only') {
+                const newAdminsOnly = session.adminsOnly === 1 ? 0 : 1;
+                await db.run("UPDATE NominationSessions SET adminsOnly = ? WHERE messageId = ?", [newAdminsOnly, interaction.message.id]);
+                session.adminsOnly = newAdminsOnly;
+                await refreshNominationMessage(interaction.message, session);
+                await interaction.reply({ content: MESSAGES.NOM_TOGGLED_ADMINS(newAdminsOnly === 1), flags: MessageFlags.Ephemeral });
             } else if (action === 'delete_map') {
                 await interaction.showModal({
                     title: MESSAGES.NOM_DELETE_MODAL_TITLE,

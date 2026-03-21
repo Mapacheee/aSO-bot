@@ -40,8 +40,8 @@ export const getNominationData = async (messageId: string): Promise<{ maps: Nomi
     return { maps: result, total };
 };
 
-export const buildNominationMessage = (title: string, maps: NominationMap[], total: number, closed: boolean = false) => {
-    const header = closed ? MESSAGES.NOM_CLOSED_TITLE(title) : MESSAGES.NOM_TITLE(title);
+export const buildNominationMessage = (title: string, maps: NominationMap[], total: number, closed: boolean = false, adminsOnly: boolean = false) => {
+    const header = closed ? MESSAGES.NOM_CLOSED_TITLE(title) : MESSAGES.NOM_TITLE(title, adminsOnly);
     const separator = '━━━━━━━━━━━━━━━━━━━━━━━━━━━';
 
     if (maps.length === 0) {
@@ -61,7 +61,7 @@ export const buildNominationMessage = (title: string, maps: NominationMap[], tot
     return `${header}\n${body}`;
 };
 
-export const buildNominationComponents = (maps: NominationMap[], closed: boolean = false) => {
+export const buildNominationComponents = (maps: NominationMap[], closed: boolean = false, adminsOnly: boolean = false) => {
     const rows: ActionRowBuilder<any>[] = [];
 
     if (maps.length > 0 && !closed) {
@@ -99,6 +99,7 @@ export const buildNominationComponents = (maps: NominationMap[], closed: boolean
         adminSelect.addOptions([
             { label: '🔄 Reiniciar votación', value: 'reset_votes' },
             { label: '🗑️ Borrar mapa', value: 'delete_map' },
+            { label: adminsOnly ? '🌍 Permitir a todos nominar' : '🛡️ Solo admins pueden nominar', value: 'toggle_admins_only' },
             { label: '🔒 Cerrar nominaciones', value: 'close' },
             { label: '♻️ Reiniciar todo', value: 'full_reset' }
         ]);
@@ -115,7 +116,8 @@ export const buildNominationComponents = (maps: NominationMap[], closed: boolean
 export const refreshNominationMessage = async (message: any, session: any) => {
     const { maps, total } = await getNominationData(session.messageId);
     const closed = session.status !== 'active';
-    const content = buildNominationMessage(session.title, maps, total, closed);
-    const components = buildNominationComponents(maps, closed);
+    const adminsOnly = session.adminsOnly === 1;
+    const content = buildNominationMessage(session.title, maps, total, closed, adminsOnly);
+    const components = buildNominationComponents(maps, closed, adminsOnly);
     await message.edit({ content, components });
 };

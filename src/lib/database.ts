@@ -87,7 +87,8 @@ export const initDb = async () => {
             channelId TEXT NOT NULL,
             title TEXT NOT NULL,
             creatorId TEXT NOT NULL,
-            status TEXT DEFAULT 'active'
+            status TEXT DEFAULT 'active',
+            adminsOnly INTEGER DEFAULT 0
         )
     `);
 

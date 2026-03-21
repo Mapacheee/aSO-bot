@@ -80,7 +80,7 @@ export const MESSAGES = {
     NOM_MAP_LABEL: "Nombre del mapa",
     NOM_DELETE_MODAL_TITLE: "Borrar un Mapa",
     NOM_DELETE_LABEL: "Nombre del mapa a borrar",
-    NOM_TITLE: (title: string) => `## 🗺️ **Nominaciones de Mapas — ${title}**`,
+    NOM_TITLE: (title: string, adminsOnly: boolean = false) => `## 🗺️ **Nominaciones de Mapas — ${title}**`,
     NOM_CLOSED_TITLE: (title: string) => `## 🔒 **Nominaciones Cerradas — ${title}**`,
     NOM_EMPTY: "\n*No hay mapas nominados todavía. ¡Sé el primero en nominar!*",
     NOM_ADD_BUTTON: "Nominar Mapa 🗺️",
@@ -91,11 +91,13 @@ export const MESSAGES = {
     NOM_ALREADY_VOTED: "Ya votaste en esta nominación. Tu voto fue actualizado.",
     NOM_CLOSED: "Esta nominación está cerrada.",
     NOM_NOT_ADMIN: "Solo usuarios con permisos de administración pueden usar esto.",
+    NOM_ADMINS_ONLY_ERROR: "En este evento, solo los administradores pueden nominar mapas.",
     NOM_RESET_VOTES: "🔄 Se reiniciaron todos los votos.",
     NOM_DELETED_MAP: (map: string) => `🗑️ Mapa **${map}** eliminado.`,
     NOM_MAP_NOT_FOUND: (map: string) => `No se encontró el mapa **${map}**.`,
     NOM_SESSION_CLOSED: "🔒 Nominaciones cerradas.",
     NOM_SESSION_REOPENED: "🔓 Nominaciones reabiertas.",
     NOM_FULL_RESET: "♻️ Se reinició todo. La nominación está lista para un nuevo evento.",
+    NOM_TOGGLED_ADMINS: (adminsOnly: boolean) => adminsOnly ? "🛡️ Ahora solo los admins pueden nominar." : "🌍 Ahora todos pueden nominar.",
     NOM_TOTAL_VOTES: (total: number) => `\n**Total de votos:** ${total}`
 };
