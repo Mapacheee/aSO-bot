@@ -104,7 +104,12 @@ const notifyMapSubscribers = async (client: Client, currentMap: string, players:
             const channel = await client.channels.fetch(chId).catch(() => null);
             if (channel && channel.isTextBased()) {
                 const mentions = subs.map(s => `<@${s.userId}>`).join(' ');
-                await (channel as any).send({ content: `${mentions} ${MESSAGES.MAP_NOTIFY(currentMap, players, maxPlayers, connectIp)}` });
+                const msg = await (channel as any).send({ content: `${mentions} ${MESSAGES.MAP_NOTIFY(currentMap, players, maxPlayers, connectIp)}` }).catch(() => null);
+                if (msg) {
+                    setTimeout(() => {
+                        msg.delete().catch(() => {});
+                    }, 5 * 60 * 1000);
+                }
             }
         }
 

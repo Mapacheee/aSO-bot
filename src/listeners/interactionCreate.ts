@@ -169,6 +169,30 @@ export class InteractionCreateListener extends Listener {
                     }
                 ]
             });
+        } else if (interaction.customId === 'btn_notif_clear') {
+            const db = await getDb();
+            const result = await db.run('DELETE FROM MapSubscriptions WHERE userId = ?', [interaction.user.id]);
+            if (result.changes && result.changes > 0) {
+                await interaction.reply({ content: MESSAGES.MAP_CLEARED, flags: MessageFlags.Ephemeral });
+            } else {
+                await interaction.reply({ content: "No tienes notificaciones activas para limpiar.", flags: MessageFlags.Ephemeral });
+            }
+        } else if (interaction.customId === 'btn_notif_add' || interaction.customId === 'btn_notif_remove') {
+            const isAdd = interaction.customId === 'btn_notif_add';
+            await interaction.showModal({
+                title: isAdd ? MESSAGES.NOTIF_MODAL_ADD_TITLE : MESSAGES.NOTIF_MODAL_REMOVE_TITLE,
+                custom_id: isAdd ? 'modal_notif_add' : 'modal_notif_remove',
+                components: [{
+                    type: 1,
+                    components: [{
+                        type: 4,
+                        custom_id: 'notif_map_name',
+                        label: MESSAGES.NOTIF_MODAL_LABEL,
+                        style: 1 as any,
+                        required: true
+                    }]
+                }]
+            });
         }
     }
 
@@ -573,6 +597,32 @@ export class InteractionCreateListener extends Listener {
                 await interaction.reply({ content: MESSAGES.NOM_DELETED_MAP(mapName), flags: MessageFlags.Ephemeral });
             } else {
                 await interaction.reply({ content: MESSAGES.NOM_MAP_NOT_FOUND(mapName), flags: MessageFlags.Ephemeral });
+            }
+        } else if (customId === 'modal_notif_add' || customId === 'modal_notif_remove') {
+            const isAdd = customId === 'modal_notif_add';
+            const mapName = interaction.fields.getTextInputValue('notif_map_name').trim();
+            if (mapName.includes(' ') || mapName.includes('@')) {
+                await interaction.reply({ content: MESSAGES.MAP_INVALID_NAME, flags: MessageFlags.Ephemeral });
+                return;
+            }
+
+            const db = await getDb();
+            if (isAdd) {
+                await db.run(
+                    'INSERT INTO MapSubscriptions (userId, mapName, channelId) VALUES (?, ?, ?)',
+                    [interaction.user.id, mapName, interaction.channelId]
+                );
+                await interaction.reply({ content: MESSAGES.MAP_SUBSCRIBED(mapName), flags: MessageFlags.Ephemeral });
+            } else {
+                const result = await db.run(
+                    'DELETE FROM MapSubscriptions WHERE userId = ? AND LOWER(mapName) LIKE LOWER(?)',
+                    [interaction.user.id, `%${mapName}%`]
+                );
+                if (result.changes && result.changes > 0) {
+                    await interaction.reply({ content: MESSAGES.MAP_UNSUBSCRIBED(mapName), flags: MessageFlags.Ephemeral });
+                } else {
+                    await interaction.reply({ content: MESSAGES.MAP_NOT_SUBSCRIBED(mapName), flags: MessageFlags.Ephemeral });
+                }
             }
         }
     }

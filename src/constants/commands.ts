@@ -102,5 +102,9 @@ export const COMMANDS = {
     NOMINAR: {
         NAME: 'nominar',
         DESCRIPTION: 'Crea una sesión de nominación de mapas para un evento'
+    },
+    SETUP_NOTIFICACIONES: {
+        NAME: 'setup-notificaciones',
+        DESCRIPTION: 'Crea el panel de notificaciones de mapas en este canal'
     }
 };
