@@ -106,5 +106,9 @@ export const COMMANDS = {
     SETUP_NOTIFICACIONES: {
         NAME: 'setup-notificaciones',
         DESCRIPTION: 'Crea el panel de notificaciones de mapas en este canal'
+    },
+    JUGADORES: {
+        NAME: 'jugadores',
+        DESCRIPTION: 'Muestra los jugadores en línea del servidor'
     }
 };

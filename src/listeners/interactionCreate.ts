@@ -169,6 +169,15 @@ export class InteractionCreateListener extends Listener {
                     }
                 ]
             });
+        } else if (interaction.customId === 'btn_notif_list') {
+            const db = await getDb();
+            const subs = await db.all('SELECT mapName FROM MapSubscriptions WHERE userId = ?', [interaction.user.id]);
+            if (subs.length === 0) {
+                await interaction.reply({ content: MESSAGES.NOTIF_NO_SUBS, flags: MessageFlags.Ephemeral });
+            } else {
+                const list = subs.map((s: any, i: number) => `**${i + 1}.** ${s.mapName}`).join('\n');
+                await interaction.reply({ content: `📋 **Tus suscripciones activas:**\n${list}`, flags: MessageFlags.Ephemeral });
+            }
         } else if (interaction.customId === 'btn_notif_clear') {
             const db = await getDb();
             const result = await db.run('DELETE FROM MapSubscriptions WHERE userId = ?', [interaction.user.id]);

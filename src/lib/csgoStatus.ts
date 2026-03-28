@@ -92,27 +92,6 @@ const notifyMapSubscribers = async (client: Client, currentMap: string, players:
 
         console.log(`[CSGO] Notifying ${subscribers.length} subscriber(s) for map: ${currentMap}`);
 
-        const channelGroups: Map<string, { userId: string, mapName: string }[]> = new Map();
-
-        for (const sub of subscribers) {
-            const group = channelGroups.get(sub.channelId) || [];
-            group.push({ userId: sub.userId, mapName: sub.mapName });
-            channelGroups.set(sub.channelId, group);
-        }
-
-        for (const [chId, subs] of channelGroups) {
-            const channel = await client.channels.fetch(chId).catch(() => null);
-            if (channel && channel.isTextBased()) {
-                const mentions = subs.map(s => `<@${s.userId}>`).join(' ');
-                const msg = await (channel as any).send({ content: `${mentions} ${MESSAGES.MAP_NOTIFY(currentMap, players, maxPlayers, connectIp)}` }).catch(() => null);
-                if (msg) {
-                    setTimeout(() => {
-                        msg.delete().catch(() => {});
-                    }, 5 * 60 * 1000);
-                }
-            }
-        }
-
         for (const sub of subscribers) {
             try {
                 const user = await client.users.fetch(sub.userId).catch(() => null);
