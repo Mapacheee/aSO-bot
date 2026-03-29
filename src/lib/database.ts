@@ -130,6 +130,26 @@ export const initDb = async () => {
         )
     `);
 
+    await db.exec(`
+        CREATE TABLE IF NOT EXISTS Suggestions (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            messageId TEXT NOT NULL UNIQUE,
+            authorId TEXT NOT NULL,
+            content TEXT NOT NULL,
+            status TEXT DEFAULT 'pending',
+            createdAt DATETIME DEFAULT CURRENT_TIMESTAMP
+        )
+    `);
+
+    await db.exec(`
+        CREATE TABLE IF NOT EXISTS SuggestionVotes (
+            messageId TEXT NOT NULL,
+            userId TEXT NOT NULL,
+            voteType TEXT NOT NULL,
+            PRIMARY KEY (messageId, userId)
+        )
+    `);
+
     return db;
 };
 

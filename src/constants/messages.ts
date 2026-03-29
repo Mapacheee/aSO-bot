@@ -133,5 +133,33 @@ export const MESSAGES = {
     TICKET_LOGS_TITLE: (user: string) => `Historial de Tickets: ${user}`,
     TICKET_LOGS_EMPTY: "Este usuario no tiene tickets cerrados.",
     TICKET_READ_NOT_FOUND: "No se encontró ningún ticket con ese ID.",
-    TICKET_READ_SUCCESS: (id: number) => `Aquí tienes la transcripción del ticket #${id}:`
+    TICKET_READ_SUCCESS: (id: number) => `Aquí tienes la transcripción del ticket #${id}:`,
+
+    // Sugerencias
+    SUG_SETUP_TITLE: "## 💡 **Buzón de Sugerencias**",
+    SUG_SETUP_DESC: "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n¿Tienes una idea brillante para mejorar el servidor?\n¡Queremos escucharla! Haz clic en el botón de abajo para redactar tu sugerencia.\n\nReglas:\n- Sé claro y conciso.\n- Verifica que no haya sido sugerida antes.\n- Respeta a los demás al votar o debatir.\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━",
+    SUG_BTN_CREATE: "Crear Sugerencia 💡",
+    SUG_MODAL_TITLE: "📝 Nueva Sugerencia",
+    SUG_MODAL_LABEL: "Desarrolla tu sugerencia",
+    SUG_CREATED_SUCCESS: "Tu sugerencia ha sido publicada con éxito para que la comunidad interactúe.",
+    SUG_EMBED_TITLE: "💡 Nueva Sugerencia",
+    SUG_BTN_UP: (count: number) => `Votar a Favor 👍 (${count})`,
+    SUG_BTN_DOWN: (count: number) => `Votar en Contra 👎 (${count})`,
+    SUG_BTN_APPROVE: "Aprobar ✅",
+    SUG_BTN_REJECT: "Rechazar ❌",
+    SUG_MODAL_RESOLVE_TITLE: "Veredicto del Staff",
+    SUG_MODAL_RESOLVE_LABEL: "Razón / Motivo (Opcional)",
+    SUG_NOT_ADMIN: "Solo administradores pueden evaluar sugerencias.",
+    SUG_RESOLVED_TITLE_APPROVED: "✅ Sugerencia Aprobada",
+    SUG_RESOLVED_TITLE_REJECTED: "❌ Sugerencia Rechazada",
+    SUG_ALREADY_RESOLVED: "Esta sugerencia ya fue evaluada.",
+    SUG_MISSING_RESULT_CHANNEL: "El canal de resultados no está configurado por variables de entorno.",
+    SUG_THREAD_NAME: (username: string) => `Sugerencia de ${username}`,
+    SUG_NOT_VOTABLE: "Esta sugerencia no está disponible para votar o ya fue cerrada.",
+    SUG_REASON_EMPTY: "Sin especificar.",
+    SUG_EMBED_DESC: (content: string, authorId: string) => `${content}\n\n**Sugerido por:** <@${authorId}>`,
+    SUG_EMBED_FOOTER: (up: number, down: number) => `Votos: 👍 ${up} | 👎 ${down}`,
+    SUG_FINAL_DESC: (content: string, authorId: string, up: number, down: number, staffId: string, reason: string) => 
+        `${content}\n\n**Sugerido por:** <@${authorId}>\n**Votos finales:** 👍 ${up} | 👎 ${down}\n\n**Staff (<@${staffId}>):**\n${reason}`,
+    SUG_PROCESSED_SUCCESS: (approved: boolean) => `✅ Sugerencia procesada resolviendo como: ${approved ? 'Aprobada' : 'Rechazada'}.`
 };

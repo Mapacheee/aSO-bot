@@ -138,5 +138,9 @@ export const COMMANDS = {
         DESCRIPTION: 'Descarga la transcripción de un ticket cerrado por su ID',
         OPT_ID: 'id',
         OPT_ID_DESC: 'El ID numérico del ticket'
+    },
+    SETUP_SUGERENCIAS: {
+        NAME: 'setup-sugerencias',
+        DESCRIPTION: 'Crea el panel de sugerencias en este canal'
     }
 };

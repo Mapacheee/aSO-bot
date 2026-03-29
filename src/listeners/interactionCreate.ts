@@ -8,6 +8,7 @@ import { startGiveawayTimer } from '../lib/giveawayManager';
 import { buildPollMessage, getVoteCounts } from '../lib/pollManager';
 import { getNominationData, buildNominationMessage, buildNominationComponents, refreshNominationMessage } from '../lib/nominationManager';
 import { createTicket, closeTicket } from '../lib/ticketManager';
+import { handleCreateSuggestionClick, handleCreateSuggestionSubmit, handleSuggestionVote, handleStaffResolveClick, handleStaffResolveSubmit } from '../lib/suggestionManager';
 import { EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle } from 'discord.js';
 
 export class InteractionCreateListener extends Listener {
@@ -213,6 +214,16 @@ export class InteractionCreateListener extends Listener {
             await createTicket(interaction, 'otros', MESSAGES.TICKET_BTN_OTROS);
         } else if (interaction.customId === 'btn_ticket_close') {
             await closeTicket(interaction);
+        } else if (interaction.customId === 'btn_sug_create') {
+            await handleCreateSuggestionClick(interaction);
+        } else if (interaction.customId === 'btn_sug_up') {
+            await handleSuggestionVote(interaction, 'up');
+        } else if (interaction.customId === 'btn_sug_down') {
+            await handleSuggestionVote(interaction, 'down');
+        } else if (interaction.customId === 'btn_sug_approve') {
+            await handleStaffResolveClick(interaction, 'approve');
+        } else if (interaction.customId === 'btn_sug_reject') {
+            await handleStaffResolveClick(interaction, 'reject');
         }
     }
 
@@ -644,6 +655,14 @@ export class InteractionCreateListener extends Listener {
                     await interaction.reply({ content: MESSAGES.MAP_NOT_SUBSCRIBED(mapName), flags: MessageFlags.Ephemeral });
                 }
             }
+        } else if (customId === 'modal_sug_create') {
+            await handleCreateSuggestionSubmit(interaction);
+        } else if (customId.startsWith('modal_sug_approve_')) {
+            const messageId = customId.replace('modal_sug_approve_', '');
+            await handleStaffResolveSubmit(interaction, 'approve', messageId);
+        } else if (customId.startsWith('modal_sug_reject_')) {
+            const messageId = customId.replace('modal_sug_reject_', '');
+            await handleStaffResolveSubmit(interaction, 'reject', messageId);
         }
     }
 }
