@@ -161,5 +161,14 @@ export const MESSAGES = {
     SUG_EMBED_FOOTER: (up: number, down: number) => `Votos: 👍 ${up} | 👎 ${down}`,
     SUG_FINAL_DESC: (content: string, authorId: string, up: number, down: number, staffId: string, reason: string) => 
         `${content}\n\n**Sugerido por:** <@${authorId}>\n**Votos finales:** 👍 ${up} | 👎 ${down}\n\n**Staff (<@${staffId}>):**\n${reason}`,
-    SUG_PROCESSED_SUCCESS: (approved: boolean) => `✅ Sugerencia procesada resolviendo como: ${approved ? 'Aprobada' : 'Rechazada'}.`
+    SUG_PROCESSED_SUCCESS: (approved: boolean) => `✅ Sugerencia procesada resolviendo como: ${approved ? 'Aprobada' : 'Rechazada'}.`,
+
+    BINDS_TITLE: "⌨️ **Binds Útiles**",
+    BINDS_DESC: "Maximiza tu velocidad bindeando comandos directo en tu consola del CS:GO.\nCopia el código, reemplaza `[letra]` por tu tecla favorita (ej. `v`), y pégalo allí:\n\n" +
+                "🔫 **Supervivencia (Humanos)**\n" +
+                "```bash\nbind \"[letra]\" \"drop; say !bizon\"   // Compra rápida de PP-Bizon\nbind \"[letra]\" \"say !kevlar\"       // Compra Chaleco + Casco\nbind \"[letra]\" \"say !he\"           // Compra Granada Explosiva\n```\n" +
+                "🧟 **Habilidades (Zombies)**\n" +
+                "```bash\nbind \"[letra]\" \"say !zammo\"        // Furia: Munición Infinita\nbind \"[letra]\" \"say !zpanic\"       // Pánico: Ciega/Desorienta a Humanos\n```\n" +
+                "🔥 **Funciones Automáticas**\n" +
+                "💡 *¿Te prendieron fuego?* ¡No hace falta bindeo! Siendo Zombie, **apretá la tecla `R`** (Recargar) y te apagarás el fuego al instante (`!zextinguish`)."
 };

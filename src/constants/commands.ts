@@ -142,5 +142,9 @@ export const COMMANDS = {
     SETUP_SUGERENCIAS: {
         NAME: 'setup-sugerencias',
         DESCRIPTION: 'Crea el panel de sugerencias en este canal'
+    },
+    BINDS: {
+        NAME: 'binds',
+        DESCRIPTION: 'Muestra una lista de binds útiles para el servidor de CS:GO'
     }
 };
