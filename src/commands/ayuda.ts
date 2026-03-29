@@ -21,13 +21,25 @@ export class AyudaCommand extends Command {
             .setDescription('Aquí tienes la lista de todos los comandos disponibles en el bot:')
             .setColor('#2b2d31');
 
-        let commandsList = '';
+        let currentChunk = '';
+        let chunkIndex = 1;
+
         for (const key in COMMANDS) {
             const cmd = COMMANDS[key as keyof typeof COMMANDS];
-            commandsList += `**/${cmd.NAME}** - ${cmd.DESCRIPTION}\n`;
+            const line = `**/${cmd.NAME}** - ${cmd.DESCRIPTION}\n`;
+            
+            if (currentChunk.length + line.length > 1024) {
+                embed.addFields({ name: `Comandos (${chunkIndex})`, value: currentChunk });
+                currentChunk = line;
+                chunkIndex++;
+            } else {
+                currentChunk += line;
+            }
         }
 
-        embed.addFields({ name: 'Comandos', value: commandsList });
+        if (currentChunk.length > 0) {
+            embed.addFields({ name: chunkIndex > 1 ? `Comandos (${chunkIndex})` : 'Comandos', value: currentChunk });
+        }
 
         return interaction.reply({ embeds: [embed], flags: MessageFlags.Ephemeral });
     }
