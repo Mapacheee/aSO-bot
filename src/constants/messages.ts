@@ -112,5 +112,26 @@ export const MESSAGES = {
     NOM_SESSION_REOPENED: "🔓 Nominaciones reabiertas.",
     NOM_FULL_RESET: "♻️ Se reinició todo. La nominación está lista para un nuevo evento.",
     NOM_TOGGLED_ADMINS: (adminsOnly: boolean) => adminsOnly ? "🛡️ Ahora solo los admins pueden nominar." : "🌍 Ahora todos pueden nominar.",
-    NOM_TOTAL_VOTES: (total: number) => `\n**Total de votos:** ${total}`
+    NOM_TOTAL_VOTES: (total: number) => `\n**Total de votos:** ${total}`,
+
+    TICKET_SETUP_TITLE: "## 🎫 **Sistema de Soporte y Tickets**",
+    TICKET_SETUP_DESC: "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n¿Necesitas ayuda, realizar una compra o reportar un problema?\nSelecciona la categoría correspondiente para abrir un ticket privado con la administración.\n\n🛒 **Compras:** VIP, creditos, unban u otros pagos.\n🚨 **Reporte:** Reportar a un jugador, fallos del servidor o staff abusivo.\n💡 **Sugerencias:** Proponer ideas nuevas para el servidor o el foro.\n❓ **Otros:** Dudas, problemas en el servidor, etc.\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━",
+    TICKET_BTN_COMPRAS: "Compras 🛒",
+    TICKET_BTN_REPORTE: "Reporte 🚨",
+    TICKET_BTN_SUGERENCIAS: "Sugerencias 💡",
+    TICKET_BTN_OTROS: "Otros ❓",
+    TICKET_ALREADY_OPEN: (category: string) => `Ya tienes un ticket activo en la categoría **${category}**.`,
+    TICKET_NO_CATEGORY: "El ID de la categoría de tickets no está configurado en el canal de administración por `.env`.",
+    TICKET_CREATED: (channelId: string) => `✅ Tu ticket ha sido creado: <#${channelId}>`,
+    TICKET_CHANNEL_WELCOME: (userId: string, category: string) => `¡Hola <@${userId}>!\n\nBienvenido a tu ticket de **${category}**. Por favor, envía toda la información necesaria y un administrador te atenderá en la brevedad.\n\nPara cerrar este ticket, usa el botón de abajo.`,
+    TICKET_BTN_CLOSE: "Cerrar Ticket 🔒",
+    TICKET_CLOSING: "Cerrando el ticket y guardando el historial... Esto tomará unos segundos.",
+    TICKET_DM_TRANSCRIPT: (category: string) => `🔒 **Tu ticket de ${category} ha sido cerrado.**\n\nAquí tienes una copia del historial de mensajes del ticket para tu registro:`,
+    TICKET_NOT_IN_TICKET: "Este comando solo se puede usar dentro de un canal de ticket.",
+    TICKET_USER_ADDED: (user: string) => `✅ Se ha añadido a ${user} al ticket.`,
+    TICKET_USER_REMOVED: (user: string) => `⛔ Se ha removido a ${user} del ticket.`,
+    TICKET_LOGS_TITLE: (user: string) => `Historial de Tickets: ${user}`,
+    TICKET_LOGS_EMPTY: "Este usuario no tiene tickets cerrados.",
+    TICKET_READ_NOT_FOUND: "No se encontró ningún ticket con ese ID.",
+    TICKET_READ_SUCCESS: (id: number) => `Aquí tienes la transcripción del ticket #${id}:`
 };

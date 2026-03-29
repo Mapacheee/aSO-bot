@@ -110,5 +110,33 @@ export const COMMANDS = {
     JUGADORES: {
         NAME: 'jugadores',
         DESCRIPTION: 'Muestra los jugadores en línea del servidor'
+    },
+    SETUP_TICKET: {
+        NAME: 'setup-ticket',
+        DESCRIPTION: 'Crea el panel de tickets en este canal'
+    },
+    TICKET_ADD: {
+        NAME: 'ticket-add',
+        DESCRIPTION: 'Añade a un usuario al ticket actual',
+        OPT_USER: 'usuario',
+        OPT_USER_DESC: 'El usuario que deseas añadir al ticket'
+    },
+    TICKET_REMOVE: {
+        NAME: 'ticket-remove',
+        DESCRIPTION: 'Remueve a un usuario del ticket actual',
+        OPT_USER: 'usuario',
+        OPT_USER_DESC: 'El usuario que deseas remover del ticket'
+    },
+    TICKET_LOGS: {
+        NAME: 'ticket-logs',
+        DESCRIPTION: 'Muestra el historial de tickets cerrados de un usuario',
+        OPT_USER: 'usuario',
+        OPT_USER_DESC: 'El usuario a buscar'
+    },
+    TICKET_READ: {
+        NAME: 'ticket-read',
+        DESCRIPTION: 'Descarga la transcripción de un ticket cerrado por su ID',
+        OPT_ID: 'id',
+        OPT_ID_DESC: 'El ID numérico del ticket'
     }
 };

@@ -7,6 +7,7 @@ import { getDb } from '../lib/database';
 import { startGiveawayTimer } from '../lib/giveawayManager';
 import { buildPollMessage, getVoteCounts } from '../lib/pollManager';
 import { getNominationData, buildNominationMessage, buildNominationComponents, refreshNominationMessage } from '../lib/nominationManager';
+import { createTicket, closeTicket } from '../lib/ticketManager';
 import { EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle } from 'discord.js';
 
 export class InteractionCreateListener extends Listener {
@@ -202,6 +203,16 @@ export class InteractionCreateListener extends Listener {
                     }]
                 }]
             });
+        } else if (interaction.customId === 'btn_ticket_compras') {
+            await createTicket(interaction, 'compras', MESSAGES.TICKET_BTN_COMPRAS);
+        } else if (interaction.customId === 'btn_ticket_reporte') {
+            await createTicket(interaction, 'reporte', MESSAGES.TICKET_BTN_REPORTE);
+        } else if (interaction.customId === 'btn_ticket_sugerencias') {
+            await createTicket(interaction, 'sugerencias', MESSAGES.TICKET_BTN_SUGERENCIAS);
+        } else if (interaction.customId === 'btn_ticket_otros') {
+            await createTicket(interaction, 'otros', MESSAGES.TICKET_BTN_OTROS);
+        } else if (interaction.customId === 'btn_ticket_close') {
+            await closeTicket(interaction);
         }
     }
 

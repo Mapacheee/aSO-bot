@@ -110,6 +110,26 @@ export const initDb = async () => {
         )
     `);
 
+    await db.exec(`
+        CREATE TABLE IF NOT EXISTS ActiveTickets (
+            channelId TEXT PRIMARY KEY,
+            userId TEXT NOT NULL,
+            category TEXT NOT NULL,
+            createdAt DATETIME DEFAULT CURRENT_TIMESTAMP
+        )
+    `);
+
+    await db.exec(`
+        CREATE TABLE IF NOT EXISTS TicketTranscripts (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            userId TEXT NOT NULL,
+            category TEXT NOT NULL,
+            transcript TEXT NOT NULL,
+            createdAt DATETIME NOT NULL,
+            closedAt DATETIME DEFAULT CURRENT_TIMESTAMP
+        )
+    `);
+
     return db;
 };
 
