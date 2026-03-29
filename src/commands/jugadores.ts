@@ -80,6 +80,7 @@ export class JugadoresCommand extends Command {
             return embed;
 
         } catch (error) {
+            console.error("GameDig Error:", error);
             return new EmbedBuilder()
                 .setColor('#ff0000')
                 .setDescription(MESSAGES.PLAYERS_SERVER_OFFLINE);
