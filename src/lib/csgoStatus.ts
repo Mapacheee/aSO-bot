@@ -49,11 +49,37 @@ export const updateCSGOStatus = async (client: Client) => {
 
             const connectLink = `steam://connect/${ip}:${port}`;
             const playerCount = state.numplayers ?? state.players.length;
+            const playersListRaw: { name: string, raw?: { score?: number, time?: number } }[] = state.players || [];
+            
+            let playerListStr = '';
+            if (playersListRaw.length === 0) {
+                playerListStr = '> No hay jugadores conectados en este momento.';
+            } else {
+                const sorted = [...playersListRaw]
+                    .filter(p => p.name && p.name.trim() !== '')
+                    .sort((a, b) => (b.raw?.score ?? 0) - (a.raw?.score ?? 0));
+
+                if (sorted.length === 0) {
+                    playerListStr = `> Hay **${playerCount}** jugador(es) conectados (nombres no disponibles).`;
+                } else {
+                    let list = '━━━━━━━━━━━━━━━━━━━━━━━━━━━\n';
+                    for (let i = 0; i < sorted.length; i++) {
+                        const p = sorted[i];
+                        const timeSec = p.raw?.time ? Math.floor(p.raw.time) : 0;
+                        const mins = Math.floor(timeSec / 60);
+                        const hours = Math.floor(mins / 60);
+                        const timeStr = hours > 0 ? `${hours}h ${mins % 60}m` : `${mins}m`;
+                        list += `**${i + 1}.** ${p.name} — ⏱️ ${timeStr}\n`;
+                    }
+                    list += '━━━━━━━━━━━━━━━━━━━━━━━━━━━';
+                    playerListStr = list;
+                }
+            }
 
             console.log(`[CSGO Debug] Query success: ${state.name} | Players: ${playerCount}`);
 
             embed.setColor('#00ff00')
-                 .setDescription(MESSAGES.CSGO_STATUS_ONLINE(state.name, state.map, playerCount, state.maxplayers, connectLink));
+                 .setDescription(MESSAGES.CSGO_STATUS_ONLINE(state.name, state.map, playerCount, state.maxplayers, connectLink, playerListStr));
 
             const currentMap = state.map?.toLowerCase();
             if (currentMap && lastMap !== null && currentMap !== lastMap) {

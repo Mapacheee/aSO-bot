@@ -2,7 +2,7 @@ export const MESSAGES = {
     WELCOME: (name: string) => `Te damos la bienvenida\n${name}\n¡Disfruta jugar aSO!`,
     CSGO_STATUS_TITLE: "💻 Estado del servidor aSO",
     CSGO_STATUS_OFFLINE: "🔴 El servidor actualmente se encuentra **Apagado** o en mantenimiento.\n\nVuelve a intentar más tarde.",
-    CSGO_STATUS_ONLINE: (name: string, map: string, players: number, maxPlayers: number, joinLink: string) => `🟢 El servidor está en línea y funcionando.\n\n**Mapa actual:** ${map}\n**Jugadores:** ${players} / ${maxPlayers}\n\n**Para unirte, pega esto en la consola:**\n\`connect ${joinLink.replace('steam://connect/', '')}\`\n\n**O usa este link directo:**\n<${joinLink}>`,
+    CSGO_STATUS_ONLINE: (name: string, map: string, players: number, maxPlayers: number, joinLink: string, playerList: string) => `🟢 El servidor está en línea y funcionando.\n\n**Mapa actual:** ${map}\n**Jugadores:** ${players} / ${maxPlayers}\n\n${playerList}\n\n**Para unirte, pega esto en la consola:**\n\`connect ${joinLink.replace('steam://connect/', '')}\`\n\n**O usa este link directo:**\n<${joinLink}>`,
     PLAYERS_TITLE: (count: number, max: number, map: string) => `🎮 En línea (${count}/${max}) — ${map}`,
     PLAYERS_EMPTY: "No hay jugadores conectados en este momento.",
     PLAYERS_SERVER_OFFLINE: "🔴 El servidor no está disponible en este momento.",
