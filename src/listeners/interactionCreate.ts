@@ -180,6 +180,7 @@ export class InteractionCreateListener extends Listener {
                 const list = subs.map((s: any, i: number) => `**${i + 1}.** ${s.mapName}`).join('\n');
                 await interaction.reply({ content: `📋 **Tus suscripciones activas:**\n${list}`, flags: MessageFlags.Ephemeral });
             }
+            setTimeout(() => interaction.deleteReply().catch(() => null), 5000);
         } else if (interaction.customId === 'btn_notif_clear') {
             const db = await getDb();
             const result = await db.run('DELETE FROM MapSubscriptions WHERE userId = ?', [interaction.user.id]);
@@ -188,6 +189,7 @@ export class InteractionCreateListener extends Listener {
             } else {
                 await interaction.reply({ content: "No tienes notificaciones activas para limpiar.", flags: MessageFlags.Ephemeral });
             }
+            setTimeout(() => interaction.deleteReply().catch(() => null), 5000);
         } else if (interaction.customId === 'btn_notif_add' || interaction.customId === 'btn_notif_remove') {
             const isAdd = interaction.customId === 'btn_notif_add';
             await interaction.showModal({
@@ -634,6 +636,7 @@ export class InteractionCreateListener extends Listener {
             const mapName = interaction.fields.getTextInputValue('notif_map_name').trim();
             if (mapName.includes(' ') || mapName.includes('@')) {
                 await interaction.reply({ content: MESSAGES.MAP_INVALID_NAME, flags: MessageFlags.Ephemeral });
+                setTimeout(() => interaction.deleteReply().catch(() => null), 5000);
                 return;
             }
 
@@ -644,6 +647,7 @@ export class InteractionCreateListener extends Listener {
                     [interaction.user.id, mapName, interaction.channelId]
                 );
                 await interaction.reply({ content: MESSAGES.MAP_SUBSCRIBED(mapName), flags: MessageFlags.Ephemeral });
+                setTimeout(() => interaction.deleteReply().catch(() => null), 5000);
             } else {
                 const result = await db.run(
                     'DELETE FROM MapSubscriptions WHERE userId = ? AND LOWER(mapName) LIKE LOWER(?)',
@@ -654,6 +658,7 @@ export class InteractionCreateListener extends Listener {
                 } else {
                     await interaction.reply({ content: MESSAGES.MAP_NOT_SUBSCRIBED(mapName), flags: MessageFlags.Ephemeral });
                 }
+                setTimeout(() => interaction.deleteReply().catch(() => null), 5000);
             }
         } else if (customId === 'modal_sug_create') {
             await handleCreateSuggestionSubmit(interaction);
