@@ -142,5 +142,41 @@ export const COMMANDS = {
     BINDS: {
         NAME: 'binds',
         DESCRIPTION: 'Muestra una lista de binds útiles para el servidor de CS:GO'
+    },
+    SETUP_INFORMACION: {
+        NAME: 'setup-informacion',
+        DESCRIPTION: 'Crea el panel de información del servidor (Reglas, VIP, etc.)'
+    },
+    ADD_RULE: {
+        NAME: 'add-rule',
+        DESCRIPTION: 'Añade una regla al servidor',
+        OPT_TEXT: 'texto',
+        OPT_TEXT_DESC: 'El texto de la regla'
+    },
+    REMOVE_RULE: {
+        NAME: 'remove-rule',
+        DESCRIPTION: 'Elimina una regla del servidor',
+        OPT_ID: 'id',
+        OPT_ID_DESC: 'El ID de la regla a eliminar'
+    },
+    ADD_VIP: {
+        NAME: 'add-vip',
+        DESCRIPTION: 'Añade un beneficio VIP al servidor',
+        OPT_TEXT: 'texto',
+        OPT_TEXT_DESC: 'El texto del beneficio'
+    },
+    REMOVE_VIP: {
+        NAME: 'remove-vip',
+        DESCRIPTION: 'Elimina un beneficio VIP del servidor',
+        OPT_ID: 'id',
+        OPT_ID_DESC: 'El ID del beneficio a eliminar'
+    },
+    SET_INFO: {
+        NAME: 'set-info',
+        DESCRIPTION: 'Configura el texto de información para ZE o ZM',
+        OPT_TIPO: 'tipo',
+        OPT_TIPO_DESC: 'Elige entre zombie_escape o zombie_mod',
+        OPT_TEXT: 'texto',
+        OPT_TEXT_DESC: 'El nuevo texto para esta sección'
     }
 };

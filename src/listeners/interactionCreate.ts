@@ -226,6 +226,42 @@ export class InteractionCreateListener extends Listener {
             await handleStaffResolveClick(interaction, 'approve');
         } else if (interaction.customId === 'btn_sug_reject') {
             await handleStaffResolveClick(interaction, 'reject');
+        } else if (interaction.customId === 'btn_info_rules') {
+            const db = await getDb();
+            const rules = await db.all('SELECT id, ruleText FROM ServerRules');
+            const embed = new EmbedBuilder().setTitle(MESSAGES.INFO_RULES_TITLE).setColor('#3498db');
+            if (rules.length === 0) {
+                embed.setDescription(MESSAGES.INFO_RULES_EMPTY);
+            } else {
+                embed.setDescription(rules.map((r: any, i: number) => `**${i + 1}.** ${r.ruleText}`).join('\n'));
+            }
+            await interaction.reply({ embeds: [embed], flags: MessageFlags.Ephemeral });
+            setTimeout(() => interaction.deleteReply().catch(() => null), 20000);
+        } else if (interaction.customId === 'btn_info_vip') {
+            const db = await getDb();
+            const benefits = await db.all('SELECT id, benefitText FROM VipBenefits');
+            const embed = new EmbedBuilder().setTitle(MESSAGES.INFO_VIP_TITLE).setColor('#f1c40f');
+            if (benefits.length === 0) {
+                embed.setDescription(MESSAGES.INFO_VIP_EMPTY);
+            } else {
+                embed.setDescription(benefits.map((b: any) => `▪ ${b.benefitText}`).join('\n'));
+            }
+            await interaction.reply({ embeds: [embed], flags: MessageFlags.Ephemeral });
+            setTimeout(() => interaction.deleteReply().catch(() => null), 20000);
+        } else if (interaction.customId === 'btn_info_ze') {
+            const db = await getDb();
+            const info = await db.get('SELECT value FROM ServerInfo WHERE key = ?', ['zombie_escape']);
+            const embed = new EmbedBuilder().setTitle(MESSAGES.INFO_ZE_TITLE).setColor('#2ecc71')
+                .setDescription(info ? info.value : "Información no disponible.");
+            await interaction.reply({ embeds: [embed], flags: MessageFlags.Ephemeral });
+            setTimeout(() => interaction.deleteReply().catch(() => null), 20000);
+        } else if (interaction.customId === 'btn_info_zm') {
+            const db = await getDb();
+            const info = await db.get('SELECT value FROM ServerInfo WHERE key = ?', ['zombie_mod']);
+            const embed = new EmbedBuilder().setTitle(MESSAGES.INFO_ZM_TITLE).setColor('#e74c3c')
+                .setDescription(info ? info.value : "Información no disponible.");
+            await interaction.reply({ embeds: [embed], flags: MessageFlags.Ephemeral });
+            setTimeout(() => interaction.deleteReply().catch(() => null), 20000);
         }
     }
 

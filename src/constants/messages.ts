@@ -87,7 +87,6 @@ export const MESSAGES = {
     NOTIF_BTN_CLEAR: "Limpiar Todo 🗑️",
     NOTIF_NO_SUBS: "No tenés suscripciones activas. Usá el botón **🔔 Notificar Mapa** para agregar una.",
     NOM_MODAL_TITLE: "Crear Nominación de Mapas",
-
     NOM_TITLE_LABEL: "Título del evento",
     NOM_MAP_MODAL_TITLE: "Nominar un Mapa",
     NOM_MAP_LABEL: "Nombre del mapa",
@@ -113,7 +112,6 @@ export const MESSAGES = {
     NOM_FULL_RESET: "♻️ Se reinició todo. La nominación está lista para un nuevo evento.",
     NOM_TOGGLED_ADMINS: (adminsOnly: boolean) => adminsOnly ? "🛡️ Ahora solo los admins pueden nominar." : "🌍 Ahora todos pueden nominar.",
     NOM_TOTAL_VOTES: (total: number) => `\n**Total de votos:** ${total}`,
-
     TICKET_SETUP_TITLE: "## 🎫 **Sistema de Soporte y Tickets**",
     TICKET_SETUP_DESC: "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n¿Necesitas ayuda, realizar una compra o reportar un problema?\nSelecciona la categoría correspondiente para abrir un ticket privado con la administración.\n\n🛒 **Compras:** VIP, creditos, unban u otros pagos.\n🚨 **Reporte:** Reportar a un jugador, fallos del servidor o staff abusivo.\n💡 **Sugerencias:** Proponer ideas nuevas para el servidor o el foro.\n❓ **Otros:** Dudas, problemas en el servidor, etc.\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━",
     TICKET_BTN_COMPRAS: "Compras 🛒",
@@ -134,8 +132,6 @@ export const MESSAGES = {
     TICKET_LOGS_EMPTY: "Este usuario no tiene tickets cerrados.",
     TICKET_READ_NOT_FOUND: "No se encontró ningún ticket con ese ID.",
     TICKET_READ_SUCCESS: (id: number) => `Aquí tienes la transcripción del ticket #${id}:`,
-
-    // Sugerencias
     SUG_SETUP_TITLE: "## 💡 **Buzón de Sugerencias**",
     SUG_SETUP_DESC: "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n¿Tienes una idea brillante para mejorar el servidor?\n¡Queremos escucharla! Haz clic en el botón de abajo para redactar tu sugerencia.\n\nReglas:\n- Sé claro y conciso.\n- Verifica que no haya sido sugerida antes.\n- Respeta a los demás al votar o debatir.\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━",
     SUG_BTN_CREATE: "Crear Sugerencia 💡",
@@ -166,9 +162,28 @@ export const MESSAGES = {
     BINDS_TITLE: "⌨️ **Binds Útiles**",
     BINDS_DESC: "Maximiza tu velocidad bindeando comandos directo en tu consola del CS:GO.\nCopia el código, reemplaza `[letra]` por tu tecla favorita (ej. `v`), y pégalo allí:\n\n" +
                 "🔫 **Supervivencia (Humanos)**\n" +
-                "```bash\nbind \"[letra]\" \"drop; say !bizon\"   // Compra rápida de PP-Bizon\nbind \"[letra]\" \"say !kevlar\"       // Compra Chaleco + Casco\nbind \"[letra]\" \"say !he\"           // Compra Granada Explosiva\n```\n" +
+                "```bash\nbind \"[letra]\" \"drop; say !bizon\"   // Compra rápida de arma\nbind \"[letra]\" \"say !kevlar\"       // Compra Chaleco + Casco\nbind \"[letra]\" \"say !he\"           // Compra Granada Explosiva\n```\n" +
                 "🧟 **Habilidades (Zombies)**\n" +
                 "```bash\nbind \"[letra]\" \"say !zammo\"        // Furia: Munición Infinita\nbind \"[letra]\" \"say !zpanic\"       // Pánico: Ciega/Desorienta a Humanos\n```\n" +
                 "🔥 **Funciones Automáticas**\n" +
-                "💡 *¿Te prendieron fuego?* ¡No hace falta bindeo! Siendo Zombie, **apretá la tecla `R`** (Recargar) y te apagarás el fuego al instante (`!zextinguish`)."
+                "💡 *¿Te prendieron fuego?* ¡No hace falta bindeo! Siendo Zombie, **apretá la tecla `R`** (Recargar) y te apagarás el fuego al instante (`!zextinguish`).",
+
+    INFO_SETUP_TITLE: "## 📚 **Información del Servidor**",
+    INFO_SETUP_DESC: "### 💡 ¡Hola, superviviente!\n> *Te damos la bienvenida al centro de ayuda de aSO.*\n\n**¿Qué deseas consultar hoy?** \nSelecciona en el menú inferior una de nuestras categorías para acceder rápidamente a lo que necesites saber.",
+    INFO_BTN_RULES: "Reglas 📜",
+    INFO_BTN_VIP: "Beneficios VIP 💎",
+    INFO_BTN_ZE: "¿Qué es Zombie Escape? 🧟",
+    INFO_BTN_ZM: "¿Qué es Zombie Mod? 🧟‍♂️",
+    INFO_RULES_TITLE: "📜 **Reglas del Servidor**",
+    INFO_RULES_EMPTY: "Al parecer todavía no hay ninguna regla definida.",
+    INFO_VIP_TITLE: "💎 **Beneficios VIP**",
+    INFO_VIP_EMPTY: "Todavía no hay beneficios VIP publicados.",
+    INFO_ZE_TITLE: "🧟 **¿Qué es Zombie Escape?**",
+    INFO_ZM_TITLE: "🧟‍♂️ **¿Qué es Zombie Mod?**",
+    INFO_SUCCESS_ADD_RULE: (id: string, text: string) => `✅ Regla añadida (ID: ${id}): ${text}`,
+    INFO_SUCCESS_REMOVE_RULE: (id: string) => `🗑️ Regla #${id} eliminada exitosamente.`,
+    INFO_SUCCESS_ADD_VIP: (id: string, text: string) => `✅ Beneficio añadido (ID: ${id}): ${text}`,
+    INFO_SUCCESS_REMOVE_VIP: (id: string) => `🗑️ Beneficio VIP #${id} eliminado exitosamente.`,
+    INFO_NOT_FOUND: (id: string) => `No se encontró ningún registro con el ID #${id}.`,
+    INFO_SUCCESS_SET_INFO: (tipo: string) => `✅ Información actualizada exitosamente para la sección **${tipo}**.`
 };
