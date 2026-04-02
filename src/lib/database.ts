@@ -150,6 +150,31 @@ export const initDb = async () => {
         )
     `);
 
+    await db.exec(`
+        CREATE TABLE IF NOT EXISTS ServerRules (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            ruleText TEXT NOT NULL
+        )
+    `);
+
+    await db.exec(`
+        CREATE TABLE IF NOT EXISTS VipBenefits (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            benefitText TEXT NOT NULL
+        )
+    `);
+
+    await db.exec(`
+        CREATE TABLE IF NOT EXISTS ServerInfo (
+            key TEXT PRIMARY KEY,
+            value TEXT NOT NULL
+        )
+    `);
+
+    // Insert default values if not exist
+    await db.run('INSERT OR IGNORE INTO ServerInfo (key, value) VALUES (?, ?)', ['zombie_escape', 'El Zombie Escape (ZE) es un modo de juego donde los Humanos deben cooperar para escapar de los Zombies superando obstáculos y defendiendo posiciones hasta ser rescatados.']);
+    await db.run('INSERT OR IGNORE INTO ServerInfo (key, value) VALUES (?, ?)', ['zombie_mod', 'El Zombie Mod (ZM) se enfoca en la supervivencia, los humanos deben construir barricadas y sobrevivir el tiempo límite mientras los Zombies intentan infectar a todos.']);
+
     return db;
 };
 
