@@ -111,6 +111,10 @@ export const COMMANDS = {
         NAME: 'setup-ticket',
         DESCRIPTION: 'Crea el panel de tickets en este canal'
     },
+    SETUP_WARNS: {
+        NAME: 'setup-warns',
+        DESCRIPTION: 'Crea el panel de gestión de warns de CS:GO en este canal'
+    },
     TICKET_ADD: {
         NAME: 'ticket-add',
         DESCRIPTION: 'Añade a un usuario al ticket actual',

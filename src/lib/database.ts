@@ -151,6 +151,28 @@ export const initDb = async () => {
     `);
 
     await db.exec(`
+        CREATE TABLE IF NOT EXISTS CSGOPlayers (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            name TEXT NOT NULL UNIQUE,
+            createdAt DATETIME DEFAULT CURRENT_TIMESTAMP
+        )
+    `);
+
+    await db.exec(`
+        CREATE TABLE IF NOT EXISTS CSGOWarns (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            playerId INTEGER NOT NULL,
+            reason TEXT NOT NULL,
+            moderatorId TEXT NOT NULL,
+            active INTEGER DEFAULT 1,
+            createdAt DATETIME DEFAULT CURRENT_TIMESTAMP,
+            removedAt DATETIME,
+            removedBy TEXT,
+            FOREIGN KEY (playerId) REFERENCES CSGOPlayers(id)
+        )
+    `);
+
+    await db.exec(`
         CREATE TABLE IF NOT EXISTS ServerRules (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             ruleText TEXT NOT NULL

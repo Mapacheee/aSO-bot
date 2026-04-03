@@ -9,7 +9,11 @@ import { buildPollMessage, getVoteCounts } from '../lib/pollManager';
 import { getNominationData, buildNominationMessage, buildNominationComponents, refreshNominationMessage } from '../lib/nominationManager';
 import { createTicket, closeTicket } from '../lib/ticketManager';
 import { handleCreateSuggestionClick, handleCreateSuggestionSubmit, handleSuggestionVote, handleStaffResolveClick, handleStaffResolveSubmit } from '../lib/suggestionManager';
-import { EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle } from 'discord.js';
+import { EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle, StringSelectMenuBuilder } from 'discord.js';
+import { getPlayers, getPlayersWithActiveWarns, getOrCreatePlayer, addWarnToPlayer, getActiveWarnsByPlayer, getActiveWarnById, removeWarnById, getPlayerByName } from '../lib/warnManager';
+
+const WARNS_NEW_PLAYER_VALUE = 'warns_new_player';
+const WARNS_REPLY_TIMEOUT = 20000;
 
 export class InteractionCreateListener extends Listener {
     public constructor(context: Listener.LoaderContext, options: Listener.Options) {
@@ -27,6 +31,33 @@ export class InteractionCreateListener extends Listener {
         } else if (interaction.isStringSelectMenu()) {
             await this.handleSelectMenu(interaction);
         }
+    }
+
+    private scheduleDeleteReply(interaction: { deleteReply: () => Promise<unknown> }) {
+        setTimeout(() => interaction.deleteReply().catch(() => null), WARNS_REPLY_TIMEOUT);
+    }
+
+    private buildWarnPlayersSelect(customId: string, players: Array<{ id: number; name: string; warns?: number }>, placeholder: string, includeNewOption: boolean) {
+        const options = players.slice(0, includeNewOption ? 24 : 25).map((player) => ({
+            label: player.name.slice(0, 100),
+            value: player.id.toString(),
+            description: typeof player.warns === 'number' ? `${player.warns} warns activos` : `ID ${player.id}`
+        }));
+
+        if (includeNewOption) {
+            options.push({
+                label: MESSAGES.WARNS_SELECT_NEW_PLAYER.slice(0, 100),
+                value: WARNS_NEW_PLAYER_VALUE,
+                description: 'Crear jugador y continuar'
+            });
+        }
+
+        return new ActionRowBuilder<StringSelectMenuBuilder>().addComponents(
+            new StringSelectMenuBuilder()
+                .setCustomId(customId)
+                .setPlaceholder(placeholder)
+                .addOptions(options)
+        );
     }
 
     private async handleButton(interaction: ButtonInteraction) {
@@ -206,12 +237,102 @@ export class InteractionCreateListener extends Listener {
                     }]
                 }]
             });
+        } else if (interaction.customId === 'btn_warns_list') {
+            const players = await getPlayersWithActiveWarns();
+            if (players.length === 0) {
+                await interaction.reply({ content: MESSAGES.WARNS_NO_ACTIVE, flags: MessageFlags.Ephemeral });
+                this.scheduleDeleteReply(interaction);
+                return;
+            }
+
+            const embed = new EmbedBuilder()
+                .setColor('#f39c12')
+                .setTitle(MESSAGES.WARNS_LIST_TITLE)
+                .setDescription(players.map((p, index) => `**${index + 1}.** ${p.name} — **${p.warns}** warns`).join('\n'));
+
+            await interaction.reply({ embeds: [embed], flags: MessageFlags.Ephemeral });
+            this.scheduleDeleteReply(interaction);
+        } else if (interaction.customId === 'btn_warns_add') {
+            const players = await getPlayers();
+            if (players.length === 0) {
+                await interaction.showModal({
+                    title: MESSAGES.WARNS_MODAL_ADD_NEW_TITLE,
+                    custom_id: 'modal_warns_add_new',
+                    components: [
+                        {
+                            type: 1,
+                            components: [
+                                {
+                                    type: 4,
+                                    custom_id: 'warns_player_name',
+                                    label: MESSAGES.WARNS_MODAL_PLAYER_LABEL,
+                                    style: TextInputStyle.Short,
+                                    required: true
+                                }
+                            ]
+                        },
+                        {
+                            type: 1,
+                            components: [
+                                {
+                                    type: 4,
+                                    custom_id: 'warns_reason',
+                                    label: MESSAGES.WARNS_MODAL_REASON_LABEL,
+                                    style: TextInputStyle.Paragraph,
+                                    required: true
+                                }
+                            ]
+                        }
+                    ]
+                });
+                return;
+            }
+
+            const row = this.buildWarnPlayersSelect('warns_add_player_select', players, MESSAGES.WARNS_SELECT_PLAYER_PLACEHOLDER, true);
+            await interaction.reply({ content: 'Selecciona un jugador para añadir un warn.', components: [row], flags: MessageFlags.Ephemeral });
+            this.scheduleDeleteReply(interaction);
+        } else if (interaction.customId === 'btn_warns_remove') {
+            const players = await getPlayersWithActiveWarns();
+            if (players.length === 0) {
+                await interaction.reply({ content: MESSAGES.WARNS_NO_ACTIVE, flags: MessageFlags.Ephemeral });
+                this.scheduleDeleteReply(interaction);
+                return;
+            }
+
+            const row = this.buildWarnPlayersSelect('warns_remove_player_select', players, MESSAGES.WARNS_SELECT_PLAYER_PLACEHOLDER, false);
+            await interaction.reply({ content: 'Selecciona un jugador para quitarle un warn.', components: [row], flags: MessageFlags.Ephemeral });
+            this.scheduleDeleteReply(interaction);
+        } else if (interaction.customId === 'btn_warns_player') {
+            const players = await getPlayers();
+            if (players.length === 0) {
+                await interaction.showModal({
+                    title: MESSAGES.WARNS_MODAL_PLAYER_TITLE,
+                    custom_id: 'modal_warns_player_lookup',
+                    components: [
+                        {
+                            type: 1,
+                            components: [
+                                {
+                                    type: 4,
+                                    custom_id: 'warns_player_name',
+                                    label: MESSAGES.WARNS_MODAL_PLAYER_LABEL,
+                                    style: TextInputStyle.Short,
+                                    required: true
+                                }
+                            ]
+                        }
+                    ]
+                });
+                return;
+            }
+
+            const row = this.buildWarnPlayersSelect('warns_player_select', players, MESSAGES.WARNS_SELECT_PLAYER_PLACEHOLDER, true);
+            await interaction.reply({ content: 'Selecciona un jugador para consultar sus warns.', components: [row], flags: MessageFlags.Ephemeral });
+            this.scheduleDeleteReply(interaction);
         } else if (interaction.customId === 'btn_ticket_compras') {
             await createTicket(interaction, 'compras', MESSAGES.TICKET_BTN_COMPRAS);
         } else if (interaction.customId === 'btn_ticket_reporte') {
             await createTicket(interaction, 'reporte', MESSAGES.TICKET_BTN_REPORTE);
-        } else if (interaction.customId === 'btn_ticket_sugerencias') {
-            await createTicket(interaction, 'sugerencias', MESSAGES.TICKET_BTN_SUGERENCIAS);
         } else if (interaction.customId === 'btn_ticket_otros') {
             await createTicket(interaction, 'otros', MESSAGES.TICKET_BTN_OTROS);
         } else if (interaction.customId === 'btn_ticket_close') {
@@ -266,7 +387,177 @@ export class InteractionCreateListener extends Listener {
     }
 
     private async handleSelectMenu(interaction: StringSelectMenuInteraction) {
-        if (interaction.customId === 'nom_vote') {
+        if (interaction.customId === 'warns_add_player_select') {
+            const selected = interaction.values[0];
+            if (selected === WARNS_NEW_PLAYER_VALUE) {
+                await interaction.showModal({
+                    title: MESSAGES.WARNS_MODAL_ADD_NEW_TITLE,
+                    custom_id: 'modal_warns_add_new',
+                    components: [
+                        {
+                            type: 1,
+                            components: [
+                                {
+                                    type: 4,
+                                    custom_id: 'warns_player_name',
+                                    label: MESSAGES.WARNS_MODAL_PLAYER_LABEL,
+                                    style: TextInputStyle.Short,
+                                    required: true
+                                }
+                            ]
+                        },
+                        {
+                            type: 1,
+                            components: [
+                                {
+                                    type: 4,
+                                    custom_id: 'warns_reason',
+                                    label: MESSAGES.WARNS_MODAL_REASON_LABEL,
+                                    style: TextInputStyle.Paragraph,
+                                    required: true
+                                }
+                            ]
+                        }
+                    ]
+                });
+                return;
+            }
+
+            await interaction.showModal({
+                title: MESSAGES.WARNS_MODAL_ADD_EXISTING_TITLE,
+                custom_id: `modal_warns_add_existing_${selected}`,
+                components: [
+                    {
+                        type: 1,
+                        components: [
+                            {
+                                type: 4,
+                                custom_id: 'warns_reason',
+                                label: MESSAGES.WARNS_MODAL_REASON_LABEL,
+                                style: TextInputStyle.Paragraph,
+                                required: true
+                            }
+                        ]
+                    }
+                ]
+            });
+        } else if (interaction.customId === 'warns_remove_player_select') {
+            const playerId = parseInt(interaction.values[0], 10);
+            const players = await getPlayers();
+            const player = players.find((p) => p.id === playerId);
+            if (!player) {
+                await interaction.reply({ content: MESSAGES.ERROR_GENERIC, flags: MessageFlags.Ephemeral });
+                this.scheduleDeleteReply(interaction);
+                return;
+            }
+
+            const warns = await getActiveWarnsByPlayer(playerId);
+            if (warns.length === 0) {
+                await interaction.reply({ content: MESSAGES.WARNS_NO_ACTIVE, flags: MessageFlags.Ephemeral });
+                this.scheduleDeleteReply(interaction);
+                return;
+            }
+
+            const options = warns.slice(0, 25).map((warn) => ({
+                label: `#${warn.id} ${warn.reason}`.slice(0, 100),
+                value: warn.id.toString(),
+                description: `Mod: ${warn.moderatorId}`.slice(0, 100)
+            }));
+
+            const row = new ActionRowBuilder<StringSelectMenuBuilder>().addComponents(
+                new StringSelectMenuBuilder()
+                    .setCustomId(`warns_remove_warn_select_${playerId}`)
+                    .setPlaceholder('Selecciona el warn a quitar...')
+                    .addOptions(options)
+            );
+
+            await interaction.reply({
+                content: `Selecciona el warn que quieres quitar a **${player.name}**.`,
+                components: [row],
+                flags: MessageFlags.Ephemeral
+            });
+            this.scheduleDeleteReply(interaction);
+        } else if (interaction.customId.startsWith('warns_remove_warn_select_')) {
+            const playerId = parseInt(interaction.customId.replace('warns_remove_warn_select_', ''), 10);
+            const warnId = parseInt(interaction.values[0], 10);
+            const warn = await getActiveWarnById(warnId);
+            if (!warn || warn.playerId !== playerId) {
+                await interaction.reply({ content: MESSAGES.WARNS_WARN_NOT_FOUND, flags: MessageFlags.Ephemeral });
+                this.scheduleDeleteReply(interaction);
+                return;
+            }
+
+            const removed = await removeWarnById(warnId, interaction.user.id);
+            if (!removed) {
+                await interaction.reply({ content: MESSAGES.WARNS_WARN_NOT_FOUND, flags: MessageFlags.Ephemeral });
+                this.scheduleDeleteReply(interaction);
+                return;
+            }
+
+            const players = await getPlayers();
+            const player = players.find((p) => p.id === playerId);
+            if (!player) {
+                await interaction.reply({ content: MESSAGES.ERROR_GENERIC, flags: MessageFlags.Ephemeral });
+                this.scheduleDeleteReply(interaction);
+                return;
+            }
+
+            const warns = await getActiveWarnsByPlayer(playerId);
+            await interaction.reply({ content: MESSAGES.WARNS_WARN_REMOVED(player.name, warns.length), flags: MessageFlags.Ephemeral });
+            this.scheduleDeleteReply(interaction);
+        } else if (interaction.customId === 'warns_player_select') {
+            const selected = interaction.values[0];
+            if (selected === WARNS_NEW_PLAYER_VALUE) {
+                await interaction.showModal({
+                    title: MESSAGES.WARNS_MODAL_PLAYER_TITLE,
+                    custom_id: 'modal_warns_player_lookup',
+                    components: [
+                        {
+                            type: 1,
+                            components: [
+                                {
+                                    type: 4,
+                                    custom_id: 'warns_player_name',
+                                    label: MESSAGES.WARNS_MODAL_PLAYER_LABEL,
+                                    style: TextInputStyle.Short,
+                                    required: true
+                                }
+                            ]
+                        }
+                    ]
+                });
+                return;
+            }
+
+            const playerId = parseInt(selected, 10);
+            const players = await getPlayers();
+            const player = players.find((p) => p.id === playerId);
+            if (!player) {
+                await interaction.reply({ content: MESSAGES.ERROR_GENERIC, flags: MessageFlags.Ephemeral });
+                this.scheduleDeleteReply(interaction);
+                return;
+            }
+
+            const warns = await getActiveWarnsByPlayer(playerId);
+            if (warns.length === 0) {
+                await interaction.reply({ content: MESSAGES.WARNS_PLAYER_TITLE(player.name, 0), flags: MessageFlags.Ephemeral });
+                this.scheduleDeleteReply(interaction);
+                return;
+            }
+
+            const embed = new EmbedBuilder()
+                .setColor('#f1c40f')
+                .setTitle(MESSAGES.WARNS_PLAYER_TITLE(player.name, warns.length))
+                .setDescription(
+                    warns
+                        .map((warn) => `**#${warn.id}** • ${warn.reason || MESSAGES.WARNS_REASON_EMPTY}\nMod: <@${warn.moderatorId}> • ${new Date(warn.createdAt).toLocaleString()}`)
+                        .join('\n\n')
+                        .slice(0, 4000)
+                );
+
+            await interaction.reply({ embeds: [embed], flags: MessageFlags.Ephemeral });
+            this.scheduleDeleteReply(interaction);
+        } else if (interaction.customId === 'nom_vote') {
             const db = await getDb();
             const session = await db.get("SELECT * FROM NominationSessions WHERE messageId = ?", [interaction.message.id]);
             if (!session || session.status !== 'active') {
@@ -667,6 +958,72 @@ export class InteractionCreateListener extends Listener {
             } else {
                 await interaction.reply({ content: MESSAGES.NOM_MAP_NOT_FOUND(mapName), flags: MessageFlags.Ephemeral });
             }
+        } else if (customId === 'modal_warns_add_new') {
+            const playerName = interaction.fields.getTextInputValue('warns_player_name').trim();
+            const reason = interaction.fields.getTextInputValue('warns_reason').trim();
+
+            if (!playerName) {
+                await interaction.reply({ content: MESSAGES.ERROR_GENERIC, flags: MessageFlags.Ephemeral });
+                this.scheduleDeleteReply(interaction);
+                return;
+            }
+
+            const { player, created } = await getOrCreatePlayer(playerName);
+            await addWarnToPlayer(player.id, reason || MESSAGES.WARNS_REASON_EMPTY, interaction.user.id);
+            const warns = await getActiveWarnsByPlayer(player.id);
+
+            const parts = [];
+            if (created) {
+                parts.push(MESSAGES.WARNS_PLAYER_CREATED(player.name));
+            }
+            parts.push(MESSAGES.WARNS_WARN_ADDED(player.name, warns.length));
+            await interaction.reply({ content: parts.join('\n'), flags: MessageFlags.Ephemeral });
+            this.scheduleDeleteReply(interaction);
+        } else if (customId.startsWith('modal_warns_add_existing_')) {
+            const playerId = parseInt(customId.replace('modal_warns_add_existing_', ''), 10);
+            const reason = interaction.fields.getTextInputValue('warns_reason').trim();
+            const players = await getPlayers();
+            const player = players.find((p) => p.id === playerId);
+
+            if (!player) {
+                await interaction.reply({ content: MESSAGES.ERROR_GENERIC, flags: MessageFlags.Ephemeral });
+                this.scheduleDeleteReply(interaction);
+                return;
+            }
+
+            await addWarnToPlayer(playerId, reason || MESSAGES.WARNS_REASON_EMPTY, interaction.user.id);
+            const warns = await getActiveWarnsByPlayer(playerId);
+
+            await interaction.reply({ content: MESSAGES.WARNS_WARN_ADDED(player.name, warns.length), flags: MessageFlags.Ephemeral });
+            this.scheduleDeleteReply(interaction);
+        } else if (customId === 'modal_warns_player_lookup') {
+            const playerName = interaction.fields.getTextInputValue('warns_player_name').trim();
+            const player = await getPlayerByName(playerName);
+            if (!player) {
+                await interaction.reply({ content: MESSAGES.WARNS_PLAYER_NOT_FOUND(playerName), flags: MessageFlags.Ephemeral });
+                this.scheduleDeleteReply(interaction);
+                return;
+            }
+            const warns = await getActiveWarnsByPlayer(player.id);
+
+            if (warns.length === 0) {
+                await interaction.reply({ content: MESSAGES.WARNS_PLAYER_TITLE(player.name, 0), flags: MessageFlags.Ephemeral });
+                this.scheduleDeleteReply(interaction);
+                return;
+            }
+
+            const embed = new EmbedBuilder()
+                .setColor('#f1c40f')
+                .setTitle(MESSAGES.WARNS_PLAYER_TITLE(player.name, warns.length))
+                .setDescription(
+                    warns
+                        .map((warn) => `**#${warn.id}** • ${warn.reason || MESSAGES.WARNS_REASON_EMPTY}\nMod: <@${warn.moderatorId}> • ${new Date(warn.createdAt).toLocaleString()}`)
+                        .join('\n\n')
+                        .slice(0, 4000)
+                );
+
+            await interaction.reply({ embeds: [embed], flags: MessageFlags.Ephemeral });
+            this.scheduleDeleteReply(interaction);
         } else if (customId === 'modal_notif_add' || customId === 'modal_notif_remove') {
             const isAdd = customId === 'modal_notif_add';
             const mapName = interaction.fields.getTextInputValue('notif_map_name').trim();
