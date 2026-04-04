@@ -91,6 +91,10 @@ export const COMMANDS = {
         NAME: 'setup-status',
         DESCRIPTION: 'Configura el panel en vivo del estado del servidor de CS:GO en el canal actual'
     },
+    SETUP_LOGS: {
+        NAME: 'setup-logs',
+        DESCRIPTION: 'Configura el canal de logs de mensajes editados y eliminados'
+    },
     SORTEO: {
         NAME: 'sorteo',
         DESCRIPTION: 'Inicia un nuevo sorteo en el servidor'

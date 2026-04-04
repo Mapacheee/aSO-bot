@@ -23,6 +23,13 @@ export const initDb = async () => {
     `);
 
     await db.exec(`
+        CREATE TABLE IF NOT EXISTS MessageLogsConfig (
+            id INTEGER PRIMARY KEY CHECK (id = 1),
+            channelId TEXT NOT NULL
+        )
+    `);
+
+    await db.exec(`
         CREATE TABLE IF NOT EXISTS TempVoiceChannels (
             channelId TEXT PRIMARY KEY
         )
