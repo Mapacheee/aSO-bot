@@ -8,7 +8,7 @@ export const initDb = async () => {
     if (db) return db;
 
     const dbPath = path.join(process.cwd(), 'database.sqlite');
-    
+
     db = await open({
         filename: dbPath,
         driver: sqlite3.Database
@@ -49,7 +49,7 @@ export const initDb = async () => {
 
     try {
         await db.exec('ALTER TABLE Giveaways ADD COLUMN acknowledgments TEXT');
-    } catch (e) {}
+    } catch (e) { }
 
     await db.exec(`
         CREATE TABLE IF NOT EXISTS GiveawayParticipants (
@@ -194,15 +194,16 @@ export const initDb = async () => {
     `);
 
     await db.exec(`
-        CREATE TABLE IF NOT EXISTS ServerInfo (
-            key TEXT PRIMARY KEY,
-            value TEXT NOT NULL
+        CREATE TABLE IF NOT EXISTS EventsConfig (
+            id INTEGER PRIMARY KEY CHECK (id = 1),
+            channelId TEXT,
+            roleId TEXT
         )
     `);
 
-    // Insert default values if not exist
     await db.run('INSERT OR IGNORE INTO ServerInfo (key, value) VALUES (?, ?)', ['zombie_escape', 'El Zombie Escape (ZE) es un modo de juego donde los Humanos deben cooperar para escapar de los Zombies superando obstáculos y defendiendo posiciones hasta ser rescatados.']);
     await db.run('INSERT OR IGNORE INTO ServerInfo (key, value) VALUES (?, ?)', ['zombie_mod', 'El Zombie Mod (ZM) se enfoca en la supervivencia, los humanos deben construir barricadas y sobrevivir el tiempo límite mientras los Zombies intentan infectar a todos.']);
+    await db.run('INSERT OR IGNORE INTO EventsConfig (id, channelId, roleId) VALUES (1, NULL, NULL)');
 
     return db;
 };

@@ -1,5 +1,5 @@
 import { Listener } from '@sapphire/framework';
-import { Interaction, ModalSubmitInteraction, ButtonInteraction, ChannelType, PermissionsBitField, GuildMember, MessageFlags, StringSelectMenuInteraction, TextInputStyle } from 'discord.js';
+import { Interaction, ModalSubmitInteraction, ButtonInteraction, ChannelType, PermissionsBitField, GuildMember, MessageFlags, StringSelectMenuInteraction } from 'discord.js';
 import { MESSAGES } from '../constants/messages';
 import { parseDuration } from '../lib/utils';
 import { addTempChannelToDb } from '../lib/tempChannels';
@@ -9,8 +9,9 @@ import { buildPollMessage, getVoteCounts } from '../lib/pollManager';
 import { getNominationData, buildNominationMessage, buildNominationComponents, refreshNominationMessage } from '../lib/nominationManager';
 import { createTicket, closeTicket } from '../lib/ticketManager';
 import { handleCreateSuggestionClick, handleCreateSuggestionSubmit, handleSuggestionVote, handleStaffResolveClick, handleStaffResolveSubmit } from '../lib/suggestionManager';
-import { EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle, StringSelectMenuBuilder } from 'discord.js';
+import { EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle, StringSelectMenuBuilder, ModalBuilder, TextInputBuilder, TextInputStyle, LabelBuilder } from 'discord.js';
 import { getPlayers, getPlayersWithActiveWarns, getOrCreatePlayer, addWarnToPlayer, getActiveWarnsByPlayer, getActiveWarnById, removeWarnById, getPlayerByName } from '../lib/warnManager';
+import { eventCache, parseEventDateToEpoch } from '../lib/eventManager';
 
 const WARNS_NEW_PLAYER_VALUE = 'warns_new_player';
 const WARNS_REPLY_TIMEOUT = 20000;
@@ -61,7 +62,77 @@ export class InteractionCreateListener extends Listener {
     }
 
     private async handleButton(interaction: ButtonInteraction) {
-        if (interaction.customId === 'btn_create_voice') {
+        if (interaction.customId.startsWith('btn_event_open_')) {
+            const id = interaction.customId.replace('btn_event_open_', '');
+            const cache = eventCache.get(id);
+            if (cache && cache.userId !== interaction.user.id) {
+                await interaction.reply({ content: 'No puedes usar este botón.', flags: MessageFlags.Ephemeral });
+                return;
+            }
+
+            const modal = new ModalBuilder()
+                .setCustomId(`event_modal_${id}`)
+                .setTitle(MESSAGES.EVENT_MODAL_TITLE);
+
+            const dateInput = new TextInputBuilder()
+                .setCustomId('event_date')
+                .setStyle(TextInputStyle.Short)
+                .setPlaceholder('Ej: 14/05/2026')
+                .setRequired(true);
+
+            const timeInput = new TextInputBuilder()
+                .setCustomId('event_time')
+                .setStyle(TextInputStyle.Short)
+                .setPlaceholder('Ej: 21:00')
+                .setRequired(true);
+
+            const mapInput = new TextInputBuilder()
+                .setCustomId('event_map')
+                .setStyle(TextInputStyle.Short)
+                .setPlaceholder('Ej: ze_mako_reactor_v5')
+                .setRequired(true);
+
+            const prizesInput = new TextInputBuilder()
+                .setCustomId('event_prizes')
+                .setStyle(TextInputStyle.Paragraph)
+                .setPlaceholder('Ej: 1er Lugar: VIP Mensual\n2do Lugar: VIP Semanal')
+                .setRequired(true);
+
+            const commentsInput = new TextInputBuilder()
+                .setCustomId('event_comments')
+                .setStyle(TextInputStyle.Paragraph)
+                .setRequired(false);
+
+            modal.addLabelComponents(
+                new LabelBuilder().setLabel(MESSAGES.EVENT_MODAL_DATE).setTextInputComponent(dateInput),
+                new LabelBuilder().setLabel(MESSAGES.EVENT_MODAL_TIME).setTextInputComponent(timeInput),
+                new LabelBuilder().setLabel(MESSAGES.EVENT_MODAL_MAP).setTextInputComponent(mapInput),
+                new LabelBuilder().setLabel(MESSAGES.EVENT_MODAL_PRIZES).setTextInputComponent(prizesInput),
+                new LabelBuilder().setLabel(MESSAGES.EVENT_MODAL_COMMENTS).setTextInputComponent(commentsInput)
+            );
+
+            await interaction.showModal(modal);
+        } else if (interaction.customId.startsWith('event_confirm_')) {
+            const embed = interaction.message.embeds[0];
+            
+            const db = await getDb();
+            const config = await db.get('SELECT channelId, roleId FROM EventsConfig WHERE id = 1');
+            
+            if (!config || !config.channelId || !config.roleId) {
+                await interaction.reply({ content: MESSAGES.EVENT_MISSING_CONFIG, flags: MessageFlags.Ephemeral });
+                return;
+            }
+
+            const channel = interaction.guild?.channels.cache.get(config.channelId);
+            if (channel && channel.isTextBased()) {
+                await channel.send({ content: `<@&${config.roleId}>`, embeds: [embed] });
+                await interaction.update({ content: MESSAGES.EVENT_SUCCESS, embeds: [], components: [] });
+            } else {
+                await interaction.reply({ content: MESSAGES.EVENT_MISSING_CONFIG, flags: MessageFlags.Ephemeral });
+            }
+        } else if (interaction.customId.startsWith('event_cancel_')) {
+            await interaction.update({ content: MESSAGES.EVENT_CANCELLED, embeds: [], components: [] });
+        } else if (interaction.customId === 'btn_create_voice') {
             await interaction.showModal({
                 title: MESSAGES.VOICE_MODAL_TITLE,
                 custom_id: 'modal_create_voice',
@@ -653,7 +724,53 @@ export class InteractionCreateListener extends Listener {
         const { customId, guild, member } = interaction;
         if (!guild || !member) return;
 
-        if (customId === 'modal_create_voice') {
+        if (customId.startsWith('event_modal_')) {
+            const id = customId.replace('event_modal_', '');
+            
+            const date = interaction.fields.getTextInputValue('event_date');
+            const time = interaction.fields.getTextInputValue('event_time');
+            const map = interaction.fields.getTextInputValue('event_map');
+            const prizes = interaction.fields.getTextInputValue('event_prizes');
+            const comments = interaction.fields.getTextInputValue('event_comments');
+
+            const timestamp = parseEventDateToEpoch(date, time);
+            if (!timestamp) {
+                await interaction.reply({ content: MESSAGES.EVENT_INVALID_DATE, flags: MessageFlags.Ephemeral });
+                return;
+            }
+
+            const cache = eventCache.get(id);
+            const imageUrl = cache?.imageUrl;
+
+            const embed = new EmbedBuilder()
+                .setDescription(MESSAGES.EVENT_BUILD_DESC(timestamp, map, prizes, comments))
+                .setColor('#e74c3c')
+                .setFooter({ text: MESSAGES.EVENT_FOOTER })
+                .setTimestamp();
+
+            if (imageUrl) {
+                embed.setImage(imageUrl);
+            }
+
+            const row = new ActionRowBuilder<ButtonBuilder>().addComponents(
+                new ButtonBuilder()
+                    .setCustomId(`event_confirm_${id}`)
+                    .setLabel(MESSAGES.EVENT_BTN_CONFIRM)
+                    .setStyle(ButtonStyle.Success),
+                new ButtonBuilder()
+                    .setCustomId(`event_cancel_${id}`)
+                    .setLabel(MESSAGES.EVENT_BTN_CANCEL)
+                    .setStyle(ButtonStyle.Danger)
+            );
+
+            await interaction.reply({
+                content: MESSAGES.EVENT_PREVIEW_TEXT,
+                embeds: [embed],
+                components: [row],
+                flags: MessageFlags.Ephemeral
+            });
+            return;
+        } else if (customId === 'modal_create_voice') {
             const limitStr = interaction.fields.getTextInputValue('voice_limit');
             const limit = parseInt(limitStr);
 

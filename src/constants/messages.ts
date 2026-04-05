@@ -185,18 +185,18 @@ export const MESSAGES = {
     SUG_REASON_EMPTY: "Sin especificar.",
     SUG_EMBED_DESC: (content: string, authorId: string) => `${content}\n\n**Sugerido por:** <@${authorId}>`,
     SUG_EMBED_FOOTER: (up: number, down: number) => `Votos: 👍 ${up} | 👎 ${down}`,
-    SUG_FINAL_DESC: (content: string, authorId: string, up: number, down: number, staffId: string, reason: string) => 
+    SUG_FINAL_DESC: (content: string, authorId: string, up: number, down: number, staffId: string, reason: string) =>
         `${content}\n\n**Sugerido por:** <@${authorId}>\n**Votos finales:** 👍 ${up} | 👎 ${down}\n\n**Staff (<@${staffId}>):**\n${reason}`,
     SUG_PROCESSED_SUCCESS: (approved: boolean) => `✅ Sugerencia procesada resolviendo como: ${approved ? 'Aprobada' : 'Rechazada'}.`,
 
     BINDS_TITLE: "⌨️ **Binds Útiles**",
     BINDS_DESC: "Maximiza tu velocidad bindeando comandos directo en tu consola del CS:GO.\nCopia el código, reemplaza `[letra]` por tu tecla favorita (ej. `v`), y pégalo allí:\n\n" +
-                "🔫 **Supervivencia (Humanos)**\n" +
-                "```bash\nbind \"[letra]\" \"drop; say !bizon\"   // Compra rápida de arma\nbind \"[letra]\" \"say !kevlar\"       // Compra Chaleco + Casco\nbind \"[letra]\" \"say !he\"           // Compra Granada Explosiva\n```\n" +
-                "🧟 **Habilidades (Zombies)**\n" +
-                "```bash\nbind \"[letra]\" \"say !zammo\"        // Furia: Munición Infinita\nbind \"[letra]\" \"say !zpanic\"       // Pánico: Ciega/Desorienta a Humanos\n```\n" +
-                "🔥 **Funciones Automáticas**\n" +
-                "💡 *¿Te prendieron fuego?* ¡No hace falta bindeo! Siendo Zombie, **apretá la tecla `R`** (Recargar) y te apagarás el fuego al instante (`!zextinguish`).",
+        "🔫 **Supervivencia (Humanos)**\n" +
+        "```bash\nbind \"[letra]\" \"drop; say !bizon\"   // Compra rápida de arma\nbind \"[letra]\" \"say !kevlar\"       // Compra Chaleco + Casco\nbind \"[letra]\" \"say !he\"           // Compra Granada Explosiva\n```\n" +
+        "🧟 **Habilidades (Zombies)**\n" +
+        "```bash\nbind \"[letra]\" \"say !zammo\"        // Furia: Munición Infinita\nbind \"[letra]\" \"say !zpanic\"       // Pánico: Ciega/Desorienta a Humanos\n```\n" +
+        "🔥 **Funciones Automáticas**\n" +
+        "💡 *¿Te prendieron fuego?* ¡No hace falta bindeo! Siendo Zombie, **apretá la tecla `R`** (Recargar) y te apagarás el fuego al instante (`!zextinguish`).",
 
     INFO_SETUP_TITLE: "## 📚 **Información del Servidor**",
     INFO_SETUP_DESC: "### 💡 ¡Hola, superviviente!\n> *Te damos la bienvenida al centro de ayuda de aSO.*\n\n**¿Qué deseas consultar hoy?** \nSelecciona en el menú inferior una de nuestras categorías para acceder rápidamente a lo que necesites saber.",
@@ -215,5 +215,43 @@ export const MESSAGES = {
     INFO_SUCCESS_ADD_VIP: (id: string, text: string) => `✅ Beneficio añadido (ID: ${id}): ${text}`,
     INFO_SUCCESS_REMOVE_VIP: (id: string) => `🗑️ Beneficio VIP #${id} eliminado exitosamente.`,
     INFO_NOT_FOUND: (id: string) => `No se encontró ningún registro con el ID #${id}.`,
-    INFO_SUCCESS_SET_INFO: (tipo: string) => `✅ Información actualizada exitosamente para la sección **${tipo}**.`
+    INFO_SUCCESS_SET_INFO: (tipo: string) => `✅ Información actualizada exitosamente para la sección **${tipo}**.`,
+
+    EVENT_SETUP_CHANNEL_SUCCESS: (channelId: string) => `✅ Canal de eventos configurado correctamente: <#${channelId}>`,
+    EVENT_SETUP_ROLE_SUCCESS: (roleId: string) => `✅ Rol de jugador para eventos configurado correctamente: <@&${roleId}>`,
+    EVENT_SETUP_MISSING_ARGS: "Debes proporcionar un canal o un rol válido.",
+    EVENT_MODAL_TITLE: "📝 Creador de Eventos",
+    EVENT_MODAL_DATE: "Fecha (DD/MM/YYYY)",
+    EVENT_MODAL_TIME: "Hora (HH:MM de Arg/UY)",
+    EVENT_MODAL_MAP: "Mapa",
+    EVENT_MODAL_PRIZES: "Premios",
+    EVENT_MODAL_COMMENTS: "Comentarios (Opcional)",
+    EVENT_TITLE: "## 📣 **NUEVO EVENTO ZOMBIE ESCAPE**",
+    EVENT_SEPARATOR: "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━",
+    EVENT_BUILD_DESC: (timestamp: number, map: string, prizes: string, comments?: string) => {
+        let desc = `## 📣 **NUEVO EVENTO ZOMBIE ESCAPE**\n`;
+        desc += `━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n`;
+        desc += `📅 **Fecha y Hora**\n`;
+        desc += `╰ <t:${timestamp}:F> (<t:${timestamp}:R>)\n\n`;
+        desc += `🗺️ **Mapa**\n`;
+        desc += `╰ \`${map}\`\n\n`;
+        desc += `🎁 **Premios**\n`;
+        desc += prizes.split('\n').map(line => `╰ ${line}`).join('\n');
+        if (comments && comments.trim()) {
+            desc += `\n\n💬 **Comentarios**\n`;
+            desc += comments.split('\n').map(line => `> ${line}`).join('\n');
+        }
+        desc += `\n\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━`;
+        return desc;
+    },
+    EVENT_FOOTER: "ArStrike • Eventos Zombie Escape",
+    EVENT_PREVIEW_TEXT: "Así se verá el evento. ¿Confirmas el envío?",
+    EVENT_BTN_CONFIRM: "Confirmar Evento ✅",
+    EVENT_BTN_CANCEL: "Cancelar ❌",
+    EVENT_CANCELLED: "❌ **Creación de evento cancelada.**",
+    EVENT_SUCCESS: "✅ **¡El evento ha sido enviado correctamente!**",
+    EVENT_MISSING_CONFIG: "⚠️ No se ha configurado el canal o el rol de eventos. Usa `/setup-eventos` y `/setup-player` antes de enviar uno.",
+    EVENT_INVALID_DATE: "❌ Formato de fecha y hora inválido. Usa DD/MM/YYYY para fecha y HH:MM para hora.",
+    EVENT_OPEN_BUTTON: "Abrir Creador 📝",
+    EVENT_COMMAND_MESSAGE_REPLY: "Haz clic en el botón para abrir el creador de eventos:"
 };

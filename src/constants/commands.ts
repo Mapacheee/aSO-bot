@@ -186,5 +186,23 @@ export const COMMANDS = {
         OPT_TIPO_DESC: 'Elige entre zombie_escape o zombie_mod',
         OPT_TEXT: 'texto',
         OPT_TEXT_DESC: 'El nuevo texto para esta sección'
+    },
+    SETUP_EVENTOS: {
+        NAME: 'setup-eventos',
+        DESCRIPTION: 'Configura el canal al que se enviarán los anuncios de eventos',
+        OPT_CHANNEL: 'canal',
+        OPT_CHANNEL_DESC: 'El canal de eventos (opcional para chatInput, obligatorio para slash)'
+    },
+    SETUP_PLAYER: {
+        NAME: 'setup-player',
+        DESCRIPTION: 'Configura el rango/rol que se mencionará en los anuncios de eventos',
+        OPT_ROLE: 'rango',
+        OPT_ROLE_DESC: 'El rol de jugador para notificar (opcional, usa mención en texto o selección)'
+    },
+    MENSAJE_EVENTO: {
+        NAME: 'mensaje-evento',
+        DESCRIPTION: 'Abre el creador de eventos para enviar un anuncio',
+        OPT_IMAGE: 'imagen',
+        OPT_IMAGE_DESC: 'Sube una imagen opcional para adjuntar al embed del evento'
     }
 };
